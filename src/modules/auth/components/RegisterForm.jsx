@@ -6,15 +6,44 @@ import Button from '../../shared/components/Button';
 import useAuth from '../hook/useAuth';
 import { frontendErrorMessage } from '../helpers/backendError';
 
+const EyeIcon = ({ open }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="w-5 h-5 transition-transform duration-200"
+  >
+    {open ? (
+      <>
+        <path d="M1 12s4.5-7 11-7 11 7 11 7-4.5 7-11 7-11-7-11-7Z" />
+        <circle cx="12" cy="12" r="3" />
+      </>
+    ) : (
+      <>
+        <path d="M3 3l18 18" />
+        <path d="M10.73 5.08A9.12 9.12 0 0 1 12 5c6.5 0 11 7 11 7a20.3 20.3 0 0 1-4.22 4.88" />
+        <path d="M6.61 6.61C3.95 8.28 2 12 2 12a20.33 20.33 0 0 0 5.62 5.92" />
+        <path d="M9.5 9.5a3 3 0 0 1 4.26 4.26" />
+      </>
+    )}
+  </svg>
+);
+
 function RegisterForm({ onSuccess, fixedRole }) {
   const [errorMessage, setErrorMessage] = useState('');
-  const [errorMessages, setErrorMessages] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     getValues,
+    setError,
+    clearErrors,
   } = useForm();
 
   const navigate = useNavigate();
@@ -22,24 +51,50 @@ function RegisterForm({ onSuccess, fixedRole }) {
 
   const onValid = async ({ username, password, email, role }) => {
     setErrorMessage('');
-    setErrorMessages([]);
+    clearErrors();
     const finalRole = fixedRole ?? role;
+
+    const setFieldErrorsFromBackend = (backendError) => {
+      const fieldByCode = {
+        2001: 'username',
+        2002: 'email',
+        2003: 'email',
+        2004: 'password',
+        2005: 'password',
+        2006: 'password',
+        2007: 'password',
+        2008: 'password',
+        7001: 'role',
+      };
+
+      let hasFieldMatch = false;
+
+      (backendError?.errors || []).forEach((err) => {
+        const field = fieldByCode[err.code];
+        const message = frontendErrorMessage[err.code] || err.message;
+
+        if (field && message) {
+          setError(field, { type: 'backend', message });
+          hasFieldMatch = true;
+        }
+      });
+
+      return hasFieldMatch;
+    };
 
     try {
       const { error } = await registerUser(username, password, email, finalRole);
 
       if (error) {
-        const detailedMessages = (error.errors || [])
-          .map((err) => frontendErrorMessage[err.code] || err.message)
-          .filter(Boolean);
+        const matched = setFieldErrorsFromBackend(error);
 
-        setErrorMessages(detailedMessages);
-        setErrorMessage(
-          error.frontendErrorMessage
-          || detailedMessages[0]
-          || error.backendMessage
-          || 'No se pudo completar el registro',
-        );
+        if (!matched) {
+          setErrorMessage(
+            error.frontendErrorMessage
+            || error.backendMessage
+            || 'No se pudo completar el registro',
+          );
+        }
 
         return;
       }
@@ -47,22 +102,19 @@ function RegisterForm({ onSuccess, fixedRole }) {
       if (onSuccess) return onSuccess();
 
       navigate('/login');
-
     } catch (err) {
       const backendError = err.backendError;
 
       if (backendError) {
-        const detailedMessages = (backendError.errors || [])
-          .map((e) => frontendErrorMessage[e.code] || e.message)
-          .filter(Boolean);
+        const matched = setFieldErrorsFromBackend(backendError);
 
-        setErrorMessages(detailedMessages);
-        setErrorMessage(
-          backendError.frontendErrorMessage
-          || detailedMessages[0]
-          || backendError.backendMessage
-          || 'Llame a soporte',
-        );
+        if (!matched) {
+          setErrorMessage(
+            backendError.frontendErrorMessage
+            || backendError.backendMessage
+            || 'Llame a soporte',
+          );
+        }
 
         return;
       }
@@ -85,7 +137,6 @@ function RegisterForm({ onSuccess, fixedRole }) {
       "
       onSubmit={handleSubmit(onValid)}
     >
-
       <Input
         label="Usuario"
         {...register('username', { required: 'Usuario es obligatorio' })}
@@ -100,19 +151,41 @@ function RegisterForm({ onSuccess, fixedRole }) {
 
       <Input
         label="Contraseña"
-        type="password"
-        {...register('password', { required: 'Contraseña obligatoria' })}
+        compact
+        type={showPassword ? 'text' : 'password'}
+        {...register('password', { required: 'La contraseña es obligatoria' })}
         error={errors.password?.message}
+        suffix={
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="h-10 w-10 flex items-center justify-center rounded border bg-gray-50 hover:bg-gray-100 hover:scale-110 active:scale-95 transition-transform duration-200"
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            <EyeIcon open={showPassword} />
+          </button>
+        }
       />
 
       <Input
         label="Confirmar Contraseña"
-        type="password"
+        compact
+        type={showPassword ? 'text' : 'password'}
         {...register('confirmPassword', {
           required: 'Confirmación obligatoria',
           validate: (v) => v === getValues('password') || 'Las contraseñas no coinciden',
         })}
         error={errors.confirmPassword?.message}
+        suffix={
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="h-10 w-10 flex items-center justify-center rounded border bg-gray-50 hover:bg-gray-100 hover:scale-110 active:scale-95 transition-transform duration-200"
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            <EyeIcon open={showPassword} />
+          </button>
+        }
       />
 
       {!fixedRole && (
@@ -136,24 +209,14 @@ function RegisterForm({ onSuccess, fixedRole }) {
       {errorMessage && (
         <p className="text-red-500 text-center text-sm">{errorMessage}</p>
       )}
-      {errorMessages.length > 0 && (
-        <ul className="text-red-500 text-sm list-disc list-inside space-y-1">
-          {errorMessages.map((msg, idx) => (
-            <li key={idx}>{msg}</li>
-          ))}
-        </ul>
-      )}
 
-      {/* Botón principal */}
       <Button type="submit">Registrarse</Button>
 
-      {/*botón para volver al login */}
       {!onSuccess && (
         <Button type="button" onClick={() => navigate('/login')}>
-          Iniciar Sesión
+          Iniciar Sesion
         </Button>
       )}
-
     </form>
   );
 }

@@ -27,7 +27,13 @@ function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2">
+    <div className="
+    flex
+    flex-col
+    gap-3
+    sm:grid
+    sm:grid-cols-2
+    ">
       <Card>
         <h3>Productos</h3>
         <p>Cantidad: {totalProducts}</p>

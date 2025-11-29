@@ -112,18 +112,16 @@ function CartPage() {
   return (
     <div>
       {/* Header */}
-      <Card>
-        <UserHeaderMenu
-          title="Carrito"
-          search={{ value: '', onChange: () => {}, onSearch: () => {} }}
-          onGoProducts={() => navigate('/')}
-          onGoCart={null}
-          onOpenLogin={() => open('loginModal')}
-          onOpenRegister={() => open('registerModal')}
-          onOpenMobileMenu={() => open('cartMenu')}
-          totalItems={totalItems}
-        />
-      </Card>
+      <UserHeaderMenu
+        title="Carrito"
+        search={{ value: '', onChange: () => {}, onSearch: () => {} }}
+        onGoProducts={() => navigate('/')}
+        onGoCart={null}
+        onOpenLogin={() => open('loginModal')}
+        onOpenRegister={() => open('registerModal')}
+        onOpenMobileMenu={() => open('cartMenu')}
+        totalItems={totalItems}
+      />
 
       {/* Mobile menu */}
       <MobileSideMenu
