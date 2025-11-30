@@ -100,10 +100,10 @@ function ListOrdersPage() {
 
       <div className="mt-4 flex flex-col gap-4">
         {loading ? (
-          <span>Cargando órdenes...</span>
+          <span className="animate-pulse">Cargando órdenes...</span>
         ) : (
-          orders.map((order) => (
-           <Card key={order.id}>
+          orders.map((order, index) => (
+           <Card key={order.id} className="animate-slideUp" style={{ animationDelay: `${index * 50}ms` }}>
             <div className="flex justify-between items-center w-full">
               <div>
                 <h1>#{order.id} | {order.customerId}</h1>

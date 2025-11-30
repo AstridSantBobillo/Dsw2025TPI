@@ -39,6 +39,8 @@ function Dashboard() {
 
         sm:gap-3
         sm:grid-cols-[256px_1fr]
+        sm:rounded-lg
+        sm:overflow-hidden
       "
     >
       <header

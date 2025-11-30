@@ -50,7 +50,7 @@ function CreateProductForm() {
   };
 
   return (
-    <Card>
+    <Card className="animate-fadeIn">
       <form
         className='
           flex

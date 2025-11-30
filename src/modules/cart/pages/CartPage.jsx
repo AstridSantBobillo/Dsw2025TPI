@@ -36,7 +36,11 @@ function CartPage() {
   });
 
   const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
-  const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
+  const totalAmount = cart.reduce((acc, p) => {
+    const delQty = get(p.sku);
+    const remaining = p.quantity - delQty;
+    return acc + remaining * p.currentUnitPrice;
+  }, 0);
 
   useEffect(() => {
     const openLogin = () => open('loginModal');
@@ -91,7 +95,7 @@ function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="p-6 flex flex-col items-center justify-center text-center">
+      <div className="page-container flex flex-col items-center justify-center text-center min-h-screen">
         <Card className="p-6 max-w-md shadow-lg">
           <h1 className="text-3xl font-semibold mb-4">Carrito vacío</h1>
           <p className="text-gray-600 mb-6 text-lg">
@@ -110,20 +114,19 @@ function CartPage() {
   }
 
   return (
-    <div>
+    <div className="page-container pb-40 sm:pb-0">
       {/* Header */}
-      <Card>
-        <UserHeaderMenu
-          title="Carrito"
-          search={{ value: '', onChange: () => {}, onSearch: () => {} }}
-          onGoProducts={() => navigate('/')}
-          onGoCart={null}
-          onOpenLogin={() => open('loginModal')}
-          onOpenRegister={() => open('registerModal')}
-          onOpenMobileMenu={() => open('cartMenu')}
-          totalItems={totalItems}
-        />
-      </Card>
+      <UserHeaderMenu
+        title="Carrito"
+        search={{ value: '', onChange: () => {}, onSearch: () => {} }}
+        onGoProducts={() => navigate('/')}
+        onGoHome={() => navigate('/')}
+        onGoCart={null}
+        onOpenLogin={() => open('loginModal')}
+        onOpenRegister={() => open('registerModal')}
+        onOpenMobileMenu={() => open('cartMenu')}
+        totalItems={totalItems}
+      />
 
       {/* Mobile menu */}
       <MobileSideMenu
@@ -147,81 +150,107 @@ function CartPage() {
       />
 
       {/* Cart Items + Order Summary */}
-      <div className="mt-4 flex flex-col sm:flex-row gap-4">
+      <div className="mt-4 flex flex-col sm:flex-row gap-[3px] sm:gap-4">
         {/* Cart items */}
-        <div className="flex-1 flex flex-col gap-4">
-          {cart.map((item) => {
+        <div className="flex-1 flex flex-col gap-[3px] sm:gap-4">
+          {cart.map((item, index) => {
             const delQty = get(item.sku);
             const remaining = item.quantity - delQty;
 
             return (
-              <Card key={item.sku}>
-                <h2 className="text-lg font-semibold">{item.name}</h2>
-                <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                  Cantidad actual: <strong>{item.quantity}</strong>
-                </p>
+              <Card key={item.sku} className="p-4 animate-slideUp" style={{ animationDelay: `${index * 50}ms` }}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex-1">
+                    <h2 className="text-base font-semibold">{item.name}</h2>
+                    <p className="text-gray-600 text-xs mt-1">
+                      Cantidad de productos: <strong>{item.quantity}</strong>
+                    </p>
+                    <p className="text-gray-600 text-xs mt-1">
+                      Sub Total: <strong>${(remaining * item.currentUnitPrice).toFixed(2)}</strong>
+                    </p>
+                  </div>
 
-                {delQty >= item.quantity && (
-                  <p className="text-red-600 p-1 text-sm font-medium">
-                        Si borra, este producto se eliminará del carrito
-                  </p>
-                )}
-
-                <div className="flex justify-between items-center mt-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
                     <Button
                       onClick={() => decrement(item.sku)}
                       disabled={delQty <= 1}
-                      className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       ➖
                     </Button>
 
-                    <span className="w-6 text-center text-lg">{delQty}</span>
+                    <span className="w-6 text-center text-sm font-semibold">{delQty}</span>
 
                     <Button
                       onClick={() => increment(item.sku, item.quantity)}
                       disabled={delQty >= item.quantity}
-                      className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       ➕
                     </Button>
+
+                    <Button
+                      className="ml-2 text-xs px-3 py-1 font-semibold"
+                      onClick={() => {
+                        const newQty = item.quantity - delQty;
+                        
+                        if (newQty <= 0) {
+                          removeFromCart(item.sku);
+                        } else {
+                          updateQuantity(item.sku, newQty);
+                        }
+
+                        reset(item.sku);
+                      }}
+                    >
+                      Borrar
+                    </Button>
                   </div>
-
-                  <Button
-                    className="ml-50 sm:ml-5 text-sm px-4 py-2 sm:text-base font-semibold"
-                    onClick={() => {
-                      if (delQty >= item.quantity) removeFromCart(item.sku);
-                      else updateQuantity(item.sku, item.quantity - delQty);
-
-                      reset(item.sku);
-                    }}
-                  >
-                    Borrar
-                  </Button>
                 </div>
 
-                <div className="mt-3 text-right font-semibold text-lg">
-                  Subtotal: ${(remaining * item.currentUnitPrice).toFixed(2)}
-                </div>
+                {delQty >= item.quantity && (
+                  <p className="text-red-600 text-xs font-medium mt-2">
+                    Si borra, este producto se eliminará del carrito
+                  </p>
+                )}
               </Card>
             );
           })}
         </div>
 
-        {/* Order summary */}
-        <Card className="sm:w-72 h-fit p-4">
-          <h2 className="text-lg font-semibold">Detalle del pedido</h2>
-          <p className="text-lg">Total ítems: {totalItems}</p>
-          <p className="text-lg">Total a pagar: ${totalAmount.toFixed(2)}</p>
+        {/* Order summary - MOBILE FIXED BOTTOM */}
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3">
+          <div className="page-container">
+            <div className="text-sm mb-3">
+              <p className="text-gray-600">Cantidad de en total: <strong>{totalItems}</strong></p>
+              <p className="text-lg font-semibold">Total a pagar: <strong>${totalAmount.toFixed(2)}</strong></p>
+            </div>
+            <Button
+              className="w-full py-2 text-sm font-semibold"
+              onClick={handleCheckout}
+            >
+              Finalizar Compra
+            </Button>
+          </div>
+        </div>
 
-          <Button
-            className="w-full py-1 text-sm sm:text-base sm:py-2"
-            onClick={handleCheckout}
-          >
-            Finalizar compra
-          </Button>
-        </Card>
+        {/* Order summary - DESKTOP SIDEBAR */}
+        <div className="hidden sm:block sm:w-72">
+          <Card className="p-4 sticky top-4">
+            <h2 className="text-lg font-semibold mb-4">Detalle del pedido</h2>
+            <div className="space-y-2 mb-4">
+              <p className="text-sm">Cantidad de en total: <strong>{totalItems}</strong></p>
+              <p className="text-lg font-semibold">Total a pagar: <strong>${totalAmount.toFixed(2)}</strong></p>
+            </div>
+
+            <Button
+              className="w-full py-2 text-sm font-semibold"
+              onClick={handleCheckout}
+            >
+              Finalizar Compra
+            </Button>
+          </Card>
+        </div>
       </div>
 
       {/* Modals */}

@@ -3,7 +3,6 @@ import SearchBar from './SearchBar';
 import useAuth from '../../auth/hook/useAuth';
 
 export default function UserHeaderMenu({
-  title = '',
   search = null,
   totalItems = 0,
   onGoCart,
@@ -17,13 +16,36 @@ export default function UserHeaderMenu({
 
   return (
     <div className="mb-3">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-3 bg-white p-2 rounded-lg shadow animate-slideDown">
 
-        {/* TÍTULO */}
-        <h1 className="text-3xl">{title}</h1>
+        {/* IZQUIERDA - ÍCONO HOGAR MOBILE + NAVEGACIÓN DESKTOP */}
+        <div className="flex items-center gap-2">
+          {/* ÍCONO HOGAR - SOLO MOBILE */}
+          <Button
+            onClick={onGoProducts}
+            className="sm:hidden h-10 w-10 p-0 flex items-center justify-center text-xl"
+          >
+            🏠
+          </Button>
 
-        {/* SEARCH DESKTOP */}
-        <div className="hidden sm:flex flex-1 px-6">
+          {/* BOTONES DESKTOP */}
+          <div className="hidden sm:flex items-center gap-2">
+            {onGoProducts && (
+              <Button onClick={onGoProducts} className="px-3 py-2 text-sm">
+                Productos
+              </Button>
+            )}
+
+            {onGoCart && (
+              <Button onClick={onGoCart} className="px-3 py-2 text-sm">
+                Carrito de compras ({totalItems})
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* CENTRO - SEARCH (MOBILE Y DESKTOP) */}
+        <div className="flex-1 flex">
           {search && (
             <SearchBar
               value={search.value}
@@ -33,58 +55,40 @@ export default function UserHeaderMenu({
           )}
         </div>
 
-        {/* SEARCH MOBILE */}
-        <div className="sm:hidden w-full">
-          {search && (
-            <SearchBar
-              value={search.value}
-              onChange={search.onChange}
-              onSearch={search.onSearch}
-            />
-          )}
+        {/* DERECHA - OPCIONES DE AUTENTICACIÓN DESKTOP + MENÚ MOBILE */}
+        <div className="flex items-center gap-2">
+          {/* BOTONES AUTH DESKTOP */}
+          <div className="hidden sm:flex items-center gap-2">
+            {!isAuthenticated ? (
+              <>
+                <Button onClick={onOpenLogin} className="px-3 py-2 text-sm">Iniciar Sesión</Button>
+                <Button onClick={onOpenRegister} className="px-3 py-2 text-sm">Registrarse</Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={singout} className="px-3 py-2 text-sm">Cerrar sesión</Button>
+
+                {/* Nombre + Avatar */}
+                <div className="flex items-center gap-2 text-xs font-medium">
+                  <img
+                    src="https://cdn-icons-png.freepik.com/512/12225/12225935.png"
+                    alt='avatar'
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <span>{displayName}</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* BOTÓN MOBILE MENU */}
+          <Button
+            className="sm:hidden h-10 w-10 p-0 flex items-center justify-center text-xl"
+            onClick={onOpenMobileMenu}
+          >
+            ≡
+          </Button>
         </div>
-
-        {/* BOTONES DESKTOP */}
-        <div className="hidden sm:flex items-center gap-3">
-          {onGoProducts && (
-            <Button onClick={onGoProducts}>Volver</Button>
-          )}
-
-          {onGoCart && (
-            <Button onClick={onGoCart}>
-              Carrito ({totalItems})
-            </Button>
-          )}
-
-          {!isAuthenticated ? (
-            <>
-              <Button onClick={onOpenLogin}>Iniciar Sesión</Button>
-              <Button onClick={onOpenRegister}>Registrarse</Button>
-            </>
-          ) : (
-            <>
-              <Button onClick={singout}>Cerrar sesión</Button>
-
-              {/* Nombre + Avatar */}
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <img
-                  src="https://cdn-icons-png.freepik.com/512/12225/12225935.png"
-                  alt='avatar'
-                  className="w-8 h-8 rounded-full"
-                />
-                <span>{displayName}</span>
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* BOTÓN MOBILE MENU */}
-        <Button
-          className="sm:hidden h-8 w-8 p-1 flex items-center justify-center"
-          onClick={onOpenMobileMenu}
-        >
-          ≡
-        </Button>
 
       </div>
     </div>

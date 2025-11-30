@@ -27,13 +27,19 @@ function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2">
-      <Card>
+    <div className="
+    flex
+    flex-col
+    gap-3
+    sm:grid
+    sm:grid-cols-2
+    ">
+      <Card className="animate-slideUp" style={{ animationDelay: '0ms' }}>
         <h3>Productos</h3>
         <p>Cantidad: {totalProducts}</p>
       </Card>
 
-      <Card>
+      <Card className="animate-slideUp" style={{ animationDelay: '50ms' }}>
         <h3>Órdenes</h3>
         <p>Cantidad: {totalOrders}</p>
       </Card>

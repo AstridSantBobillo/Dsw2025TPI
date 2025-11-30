@@ -7,7 +7,7 @@ import ProtectedRoute from './modules/auth/components/ProtectedRoute';
 import ListOrdersPage from './modules/orders/pages/ListOrdersPage';
 import Home from './modules/home/pages/Home';
 import ListProductsPage from './modules/products/pages/ListProductsPage';
-import ListProductsUserPage from './modules/products/pages/ListProductsUserPage';
+import ListProductsUserPage from './modules/home/pages/ListProductsUserPage';
 import CartPage from './modules/cart/pages/CartPage';
 import CreateProductPage from './modules/products/pages/CreateProductPage';
 
