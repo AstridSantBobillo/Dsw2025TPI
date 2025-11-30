@@ -6,7 +6,7 @@ import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import UserHeaderMenu from '../../shared/components/UserHeaderMenu';
 import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
-import { getClientProducts } from '../services/listUser';
+import { getClientProducts } from '../../products/services/listUser';
 import { useCart } from '../../cart/hooks/useCart';
 
 function ListProductsUserPage() {
@@ -78,13 +78,14 @@ function ListProductsUserPage() {
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div>
+    <div className="page-container">
       {/* HEADER REUTILIZABLE */}
       <UserHeaderMenu
         title="Productos"
         totalItems={totalItems}
         onGoCart={() => navigate('/cart')}
         onGoProducts={null}
+        onGoHome={() => navigate('/')}
         onOpenLogin={() => setOpenLoginModal(true)}
         onOpenRegister={() => setOpenRegisterModal(true)}
         onOpenMobileMenu={() => setOpenCartMenu(true)}
@@ -121,8 +122,8 @@ function ListProductsUserPage() {
       {/* PRODUCT LIST */}
       <div
         className="
-        mt-4 flex flex-col gap-4
-        sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+        mt-4 flex flex-col gap-[3px]
+        sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4
       "
       >
         {loading ? (
@@ -139,84 +140,86 @@ function ListProductsUserPage() {
                 <img
                   src={defaultProductImage}
                   alt={product.name}
-                  className="w-full h-40 object-contain mb-3 rounded"
+                  className="w-full h-40 object-cover"
                 />
 
-                <h2 className="text-lg font-semibold">{product.name}</h2>
-                <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                  Stock: {product.stockQuantity} – ${product.currentUnitPrice}
-                </p>
+                <div className="p-4 flex flex-col flex-1">
+                  <h2 className="text-lg font-semibold">{product.name}</h2>
+                  <p className="text-gray-600 mt-1 text-sm sm:text-base">
+                    Stock: {product.stockQuantity} – ${product.currentUnitPrice}
+                  </p>
 
-                {/* Mostrar si ya está en el carrito */}
-                {(() => {
-                  const cartItem = cart.find((item) => item.sku === product.sku);
+                  {/* Mostrar si ya está en el carrito */}
+                  {(() => {
+                    const cartItem = cart.find((item) => item.sku === product.sku);
 
-                  if (!cartItem) return null;
+                    if (!cartItem) return null;
 
-                  return (
-                    <p className="text-sm mt-1 text-green-600 font-medium">
-                        Ya tienes {cartItem.quantity} en el carrito.
-                    </p>
-                  );
-                })()}
+                    return (
+                      <p className="text-sm mt-1 text-green-600 font-medium">
+                          Ya tienes {cartItem.quantity} en el carrito.
+                      </p>
+                    );
+                  })()}
 
-                <div className="flex items-center gap-4 mt-3">
-                  <Button
-
-                    onClick={() =>
-                      setQuantities((prev) => ({
-                        ...prev,
-                        [product.sku]: Math.max(1, qty - 1),
-                      }))
-                    }
-                    disabled={qty <= 1}
-                    className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    ➖
-                  </Button>
-
-                  <span className="w-8 text-center text-lg font-semibold">
-                    {qty}
-                  </span>
-
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4 mt-3 flex-1">
                     <Button
+
                       onClick={() =>
                         setQuantities((prev) => ({
                           ...prev,
-                          [product.sku]: Math.min(
-                            product.stockQuantity,
-                            qty + 1,
-                          ),
+                          [product.sku]: Math.max(1, qty - 1),
                         }))
                       }
-                      disabled={isMaxReached}
+                      disabled={qty <= 1}
                       className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      ➕
+                      ➖
                     </Button>
 
-                    {isMaxReached && (
-                      <span className="text-sm text-red-600 font-medium">
-                        No hay stock
-                      </span>
-                    )}
+                    <span className="w-8 text-center text-lg font-semibold">
+                      {qty}
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() =>
+                          setQuantities((prev) => ({
+                            ...prev,
+                            [product.sku]: Math.min(
+                              product.stockQuantity,
+                              qty + 1,
+                            ),
+                          }))
+                        }
+                        disabled={isMaxReached}
+                        className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        ➕
+                      </Button>
+
+                      {isMaxReached && (
+                        <span className="text-sm text-red-600 font-medium">
+                          No hay stock
+                        </span>
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={() => {
+                        addToCart(product, qty);
+                        setQuantities((prev) => ({
+                          ...prev,
+                          [product.sku]: 1,
+                        }));
+                      }}
+                      disabled={isMaxReached}
+                      className="ml-auto text-sm px-4 py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                    Agregar
+                    </Button>
+
                   </div>
-
-                  <Button
-                    onClick={() => {
-                      addToCart(product, qty);
-                      setQuantities((prev) => ({
-                        ...prev,
-                        [product.sku]: 1,
-                      }));
-                    }}
-                    disabled={isMaxReached}
-                    className="ml-50 sm:ml-5 text-sm px-4 py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                  Agregar
-                  </Button>
-
                 </div>
               </Card>
             );
@@ -225,40 +228,51 @@ function ListProductsUserPage() {
       </div>
 
       {/* PAGINATION */}
-      <div className="flex justify-center items-center mt-3">
-        <button
-          disabled={pageNumber === 1}
-          onClick={() => setPageNumber(pageNumber - 1)}
-          className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:text-base"
-        >
-          Atras
-        </button>
+      <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+        {/* BOTONES DE NAVEGACIÓN */}
+        <div className="flex items-center gap-2">
+          <button
+            disabled={pageNumber === 1}
+            onClick={() => setPageNumber(pageNumber - 1)}
+            className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:px-5 sm:py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Atras
+          </button>
 
-        <span className="w-8 text-base sm:w-8 sm:text-lg font-semibold">
-          {pageNumber} / {totalPages}
-        </span>
+          <span className="px-4 py-2 text-sm sm:text-base font-semibold border border-gray-200 rounded">
+            {pageNumber} / {totalPages}
+          </span>
 
-        <button
-          disabled={pageNumber === totalPages}
-          onClick={() => setPageNumber(pageNumber + 1)}
-          className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:text-base"
-        >
-          Siguiente
-        </button>
+          <button
+            disabled={pageNumber === totalPages}
+            onClick={() => setPageNumber(pageNumber + 1)}
+            className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:px-5 sm:py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Siguiente
+          </button>
+        </div>
 
-        <select
-          value={pageSize}
-          onChange={(evt) => {
-            setPageNumber(1);
-            setPageSize(Number(evt.target.value));
-          }}
-          className="ml-3 w-20 text-base sm:w-8 sm:text-lg font-semibold"
-        >
-          <option value="2">2</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-        </select>
+        {/* SELECTOR DE TAMAÑO */}
+        <div className="flex items-center gap-2">
+          <label htmlFor="pageSize" className="text-sm font-medium text-gray-600">
+            Por página:
+          </label>
+          <select
+            id="pageSize"
+            value={pageSize}
+            onChange={(evt) => {
+              setPageNumber(1);
+              setPageSize(Number(evt.target.value));
+            }}
+            className="border border-gray-200 rounded px-3 py-2 text-sm font-medium appearance-none bg-white"
+            style={{ direction: 'rtl' }}
+          >
+            <option value="2">2</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="20">20</option>
+          </select>
+        </div>
       </div>
 
       {/* MODALS */}

@@ -17,7 +17,7 @@ export default function Modal({ isOpen, onClose, children }) {
           relative
           w-full max-w-md
           bg-white
-          p-6
+          p-4
           rounded-lg
           shadow-2xl
           animate-slideUp
@@ -29,13 +29,15 @@ export default function Modal({ isOpen, onClose, children }) {
         <button
           onClick={onClose}
           className="
-            absolute top-3 right-3
+            absolute top-2 right-2
             h-8 w-8
             flex items-center justify-center
             rounded-full
             text-lg
             hover:bg-gray-100
-            transition
+            transition-all duration-200
+            hover:scale-110
+            active:scale-95
           "
         >
           X

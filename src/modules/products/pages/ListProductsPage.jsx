@@ -94,9 +94,9 @@ function ListProductsPage() {
       <div className='mt-4 flex flex-col gap-4'>
         {
           loading
-            ? <span>Buscando datos...</span>
-            : products.map(product => (
-              <Card key={product.sku}>
+            ? <span className='animate-pulse'>Buscando datos...</span>
+            : products.map((product, index) => (
+              <Card key={product.sku} className={`animate-slideUp`} style={{ animationDelay: `${index * 50}ms` }}>
                 <div className="flex justify-between items-center w-full">
                   <div>
                     <h1>{product.sku} - {product.name}</h1>

@@ -14,7 +14,7 @@ export default function LoginModal({ isOpen, onClose }) {
       <p className="text-center text-sm mt-4">
         ¿No tienes cuenta?
         <button
-          className="text-blue-600 ml-1"
+          className="text-blue-600 ml-1 bg-gray-100 hover:bg-gray-200 rounded px-2 py-1"
           onClick={() => {
             onClose();            // cerramos login
             window.dispatchEvent(new Event('open-register')); // abrimos register
