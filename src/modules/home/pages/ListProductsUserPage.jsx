@@ -8,6 +8,8 @@ import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
 import { getClientProducts } from '../../products/services/listUser';
 import { useCart } from '../../cart/hooks/useCart';
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
+import NoticeModal from '../../shared/components/NoticeModal';
 
 function ListProductsUserPage() {
   const defaultProductImage =
@@ -36,6 +38,7 @@ function ListProductsUserPage() {
   // MODALS
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
+  const { isOpen, isClosing, message, open, close } = useNoticeModal();
 
   // OPEN MODALS FROM EVENTS
   useEffect(() => {
@@ -212,6 +215,7 @@ function ListProductsUserPage() {
                           ...prev,
                           [product.sku]: 1,
                         }));
+                         open(`Se agregó "${product.name}" al carrito.`);
                       }}
                       disabled={isMaxReached}
                       className="ml-auto text-sm px-4 py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
@@ -285,6 +289,9 @@ function ListProductsUserPage() {
         isOpen={openRegisterModal}
         onClose={() => setOpenRegisterModal(false)}
       />
+
+      <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
+
     </div>
   );
 }

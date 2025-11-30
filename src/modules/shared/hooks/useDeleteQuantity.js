@@ -21,7 +21,11 @@ export function useDeleteQuantity() {
     }));
 
   const reset = (sku) =>
-    setDeleteQuantities((prev) => ({ ...prev, [sku]: 0 }));
+  setDeleteQuantities((prev) => {
+    const copy = { ...prev };
+    delete copy[sku]; // ❗ Elimina la clave
+    return copy;
+  });
 
   return { deleteQuantities, get, increment, decrement, reset };
 }

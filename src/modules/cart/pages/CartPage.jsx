@@ -6,6 +6,7 @@ import useAuth from '../../auth/hook/useAuth';
 import { useCart } from '../hooks/useCart';
 import { useDeleteQuantity } from '../../shared/hooks/useDeleteQuantity';
 import { useToggleMap } from '../../shared/hooks/useToggleMap';
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -14,6 +15,7 @@ import UserHeaderMenu from '../../shared/components/UserHeaderMenu';
 import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
+import NoticeModal from '../../shared/components/NoticeModal';
 
 // Services
 import { createOrder } from '../../orders/services/createOrder';
@@ -24,6 +26,8 @@ function CartPage() {
   const { user } = useAuth();
 
   const { deleteQuantities, get, increment, decrement, reset } = useDeleteQuantity();
+
+  const { isOpen, isClosing, message, open : openNotification, close: closeNotification } = useNoticeModal();
 
   const {
     state: modals,
@@ -77,12 +81,11 @@ function CartPage() {
       const { data, error } = await createOrder(orderData);
 
       if (error) throw error;
-
       clearCart();
       navigate('/');
     } catch (err) {
       console.error(err);
-      alert('Error al procesar la orden.');
+      openNotification('Error al procesar la orden.'); 
     }
   };
 
@@ -201,6 +204,7 @@ function CartPage() {
                         }
 
                         reset(item.sku);
+                        openNotification(`Se eliminó "${item.name}" del carrito.`); 
                       }}
                     >
                       Borrar
@@ -263,6 +267,9 @@ function CartPage() {
         isOpen={modals.registerModal}
         onClose={() => close('registerModal')}
       />
+
+      <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
+      
     </div>
   );
 }
