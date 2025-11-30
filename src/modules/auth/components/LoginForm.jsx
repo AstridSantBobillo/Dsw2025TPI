@@ -146,15 +146,14 @@ function LoginForm({ onSuccess }) {
         )}
       </div>
 
-      {errorMessage && (
-        <p className="text-red-500 text-sm text-center">{errorMessage}</p>
-      )}
-      {errorMessages.length > 0 && (
-        <ul className="text-red-500 text-sm list-disc list-inside space-y-1">
+        {errorMessages.length > 0 ? (
+        <ul className="text-red-500 text-sm space-y-1">
           {errorMessages.map((msg, idx) => (
             <li key={idx}>{msg}</li>
           ))}
         </ul>
+      ) : errorMessage && (
+        <p className="text-red-500 text-sm text-center">{errorMessage}</p>
       )}
     </form>
   );

@@ -56,15 +56,18 @@ function RegisterForm({ onSuccess, fixedRole }) {
 
     const setFieldErrorsFromBackend = (backendError) => {
       const fieldByCode = {
-        2001: 'username',
-        2002: 'email',
-        2003: 'email',
-        2004: 'password',
-        2005: 'password',
-        2006: 'password',
-        2007: 'password',
-        2008: 'password',
-        7001: 'role',
+        9101: ['username', 'email'],
+        2001: ['username'],
+        2002: ['email'],
+        2003: ['email'],
+        2004: ['password'],
+        2005: ['password'],
+        2006: ['password'],
+        2007: ['password'],
+        2008: ['password'],
+        7001: ['role'],
+        9201: ['role'],
+        9202: ['role'],
       };
 
       let hasFieldMatch = false;
@@ -73,8 +76,11 @@ function RegisterForm({ onSuccess, fixedRole }) {
         const field = fieldByCode[err.code];
         const message = frontendErrorMessage[err.code] || err.message;
 
-        if (field && message) {
-          setError(field, { type: 'backend', message });
+         if (field && message) {
+          const fieldList = Array.isArray(field) ? field : [field];
+          fieldList.forEach((field) => {
+            setError(field, { type: 'backend', message });
+          });
           hasFieldMatch = true;
         }
       });
