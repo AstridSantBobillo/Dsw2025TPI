@@ -48,13 +48,13 @@ export default function OrderCard({
   showTotal = false,
   showCreatedAt = false,
 }) {
-  const { id, customerId, status, totalAmount, createdAt } = order || {};
+  const { id, customerId, name, status, totalAmount, createdAt } = order || {};
 
   return (
     <Card className="animate-slideUp">
       <div className="flex justify-between items-center w-full gap-3">
         <div className="min-w-0">
-          <h1>#{id} | {customerId}</h1>
+          <h1>#{id} | {name}</h1>
 
           {/* Meta: Estado con etiqueta y pill, opcionales total/fecha */}
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-700">

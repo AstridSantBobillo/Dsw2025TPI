@@ -127,7 +127,7 @@ function ListOrdersPage() {
               clear();
               setPageNumber(1);
             }}
-            placeholder="Buscar (ID, cliente, estado)…"
+            placeholder="Buscar por nombre de cliente…"
             className="sm:flex-1"
           />
 
@@ -165,7 +165,7 @@ function ListOrdersPage() {
             <div key={order.id} style={{ animationDelay: `${index * 50}ms` }}>
               <OrderCard
                 order={order}
-                onView={() => navigate(`/admin/orders/${order.id}`)}
+                onView={() => {}}
               />
             </div>
           ))
