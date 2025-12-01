@@ -12,7 +12,7 @@ export default function UserHeaderMenu({
   onOpenMobileMenu,
 }) {
   const { isAuthenticated, user, singout } = useAuth();
-  const displayName = user?.name || 'Usuario';
+  const displayName = user?.username || 'Usuario';
 
   return (
     <div className="mb-3">

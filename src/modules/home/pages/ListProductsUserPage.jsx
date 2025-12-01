@@ -18,7 +18,8 @@ function ListProductsUserPage() {
   const navigate = useNavigate();
 
   // PRODUCT STATE
-  const [searchTerm, setSearchTerm] = useState('');
+  const [inputValue, setInputValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [status] = useState('enabled');
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -93,9 +94,18 @@ function ListProductsUserPage() {
         onOpenRegister={() => setOpenRegisterModal(true)}
         onOpenMobileMenu={() => setOpenCartMenu(true)}
         search={{
-          value: searchTerm,
-          onChange: (e) => setSearchTerm(e.target.value),
+          value: inputValue,
+          onChange: (e) => {
+            const v = e.target.value;
+            setInputValue(v);
+
+            if (v.trim() === "") {
+              setSearchTerm("");
+              setPageNumber(1);
+            }
+          },
           onSearch: () => {
+            setSearchTerm(inputValue.trim());
             setPageNumber(1);
           },
         }}

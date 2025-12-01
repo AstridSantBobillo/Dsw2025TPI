@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Hooks
@@ -24,6 +24,9 @@ function CartPage() {
   const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
   const { user } = useAuth();
+  const [inputValue, setInputValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+
 
   const { deleteQuantities, get, increment, decrement, reset } = useDeleteQuantity();
 
@@ -116,12 +119,29 @@ function CartPage() {
     );
   }
 
+  const filteredCart = cart.filter((item) =>
+  item.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
   return (
     <div className="page-container pb-40 sm:pb-0">
       {/* Header */}
       <UserHeaderMenu
         title="Carrito"
-        search={{ value: '', onChange: () => {}, onSearch: () => {} }}
+        search={{
+            value: inputValue,
+            onChange: (e) => {
+              const v = e.target.value;
+              setInputValue(v);
+
+              if (v.trim() === "") {
+                setSearchTerm("");
+              }
+            },
+            onSearch: () => {
+              setSearchTerm(inputValue.trim());
+            },
+          }}
         onGoProducts={() => navigate('/')}
         onGoHome={() => navigate('/')}
         onGoCart={null}
@@ -156,7 +176,12 @@ function CartPage() {
       <div className="mt-4 flex flex-col sm:flex-row gap-[3px] sm:gap-4">
         {/* Cart items */}
         <div className="flex-1 flex flex-col gap-[3px] sm:gap-4">
-          {cart.map((item, index) => {
+           {filteredCart.length === 0 ? (
+            <Card className="p-4 text-center text-gray-600">
+              No hay productos en el carrito que coincidan con la búsqueda.
+            </Card>
+             ) : (
+            filteredCart.map((item, index) => {
             const delQty = get(item.sku);
             const remaining = item.quantity - delQty;
 
@@ -219,7 +244,7 @@ function CartPage() {
                 )}
               </Card>
             );
-          })}
+          }))}
         </div>
 
         {/* Order summary - MOBILE FIXED BOTTOM */}

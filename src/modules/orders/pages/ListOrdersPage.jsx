@@ -17,6 +17,7 @@ const orderStatus = {
 function ListOrdersPage() {
   const navigate = useNavigate();
 
+  const [inputValue, setInputValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [status, setStatus] = useState(orderStatus.ALL);
   const [pageNumber, setPageNumber] = useState(1);
@@ -41,11 +42,25 @@ function ListOrdersPage() {
     }
   };
 
-  useEffect(() => {
+useEffect(() => {
     fetchOrders();
-  }, [status, pageSize, pageNumber]);
+  }, [searchTerm, status, pageSize, pageNumber]);
 
   const totalPages = Math.ceil(total / pageSize);
+
+  const handleSearch = () => {
+    setSearchTerm(inputValue.trim());
+    setPageNumber(1);
+  };
+
+  const handleChange = (v) => {
+    setInputValue(v);
+
+    if (v.trim() === '') {
+      setSearchTerm('');
+      setPageNumber(1);
+    }
+  };
 
   return (
     <div>
@@ -56,14 +71,15 @@ function ListOrdersPage() {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex items-center gap-3">
-            <input
-              value={searchTerm}
-              onChange={(evt) => setSearchTerm(evt.target.value)}
+             <input
+              value={inputValue}
+              onChange={(e) => handleChange(e.target.value)}
+              onKeyDown={(e) => {if (e.key === 'Enter') handleSearch();}}
               type="text"
               placeholder="Buscar"
               className="text-[1.3rem] w-full"
             />
-           <Button onClick={fetchOrders} className="h-11 w-11 flex items-center justify-center p-0">
+           <Button onClick={handleSearch} className="h-11 w-11 flex items-center justify-center p-0">
              <svg 
                 viewBox="0 0 24 24" 
                 fill="none" 
@@ -86,7 +102,7 @@ function ListOrdersPage() {
 
           </div>
 
-          <select onChange={(evt) => setStatus(evt.target.value)} className="text-[1.3rem]">
+          <select onChange={(evt) => {setStatus(evt.target.value); setPageNumber(1);}} className="text-[1.3rem]">
             <option value={orderStatus.ALL}>Todos</option>
             <option value={orderStatus.PENDING}>Pendientes</option>
             <option value={orderStatus.PROCESSING}>Procesadas</option>

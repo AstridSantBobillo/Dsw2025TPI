@@ -8,6 +8,11 @@ export default function SearchBar({ value, onChange, onSearch }) {
       <input
         value={value}
         onChange={onChange}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onSearch();
+          }
+        }}
         type="text"
         placeholder="Buscar productos..."
         className="

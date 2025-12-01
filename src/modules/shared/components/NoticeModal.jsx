@@ -24,3 +24,4 @@ export default function NoticeModal({ isOpen, isClosing, message, onClose }) {
     </div>
   );
 }
+
