@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 //Hooks
 import useNoticeModal from '../../shared/hooks/useNoticeModal';
 import useSearchState from '../../shared/hooks/useSearchState'; 
+import { useCart } from '../../cart/hooks/useCart';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -18,7 +19,7 @@ import ProductCard from '../../products/components/ProductCard';
 
 // Services
 import { getClientProducts } from '../../products/services/listUser';
-import { useCart } from '../../cart/hooks/useCart';
+
 
 function ListProductsUserPage() {
   const defaultProductImage =

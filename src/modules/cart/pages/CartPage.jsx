@@ -17,6 +17,7 @@ import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
 import NoticeModal from '../../shared/components/NoticeModal';
+import CartCard from '../components/CartCard';
 
 // Services
 import { createOrder } from '../../orders/services/createOrder';
@@ -26,7 +27,7 @@ function CartPage() {
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
   const { user } = useAuth();
   const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
-  const { deleteQuantities, get, increment, decrement, reset } = useDeleteQuantity();
+  const { get, increment, decrement, reset } = useDeleteQuantity();
   const { isOpen, isClosing, message, open : openNotification, close: closeNotification } = useNoticeModal();
 
   const {
@@ -40,11 +41,9 @@ function CartPage() {
   });
 
   const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
-  const totalAmount = cart.reduce((acc, p) => {
-    const delQty = get(p.sku);
-    const remaining = p.quantity - delQty;
-    return acc + remaining * p.currentUnitPrice;
-  }, 0);
+
+  const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
+
 
   useEffect(() => {
     const openLogin = () => open('loginModal');
@@ -177,71 +176,37 @@ function CartPage() {
             <Card className="p-4 text-center text-gray-600">
               No hay productos en el carrito que coincidan con la búsqueda.
             </Card>
-             ) : (
+          ) : (
             filteredCart.map((item, index) => {
-            const delQty = get(item.sku);
-            const remaining = item.quantity - delQty;
+              const delQty = get(item.sku);
 
-            return (
-              <Card key={item.sku} className="p-4 animate-slideUp" style={{ animationDelay: `${index * 50}ms` }}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex-1">
-                    <h2 className="text-base font-semibold">{item.name}</h2>
-                    <p className="text-gray-600 text-xs mt-1">
-                      Cantidad de productos: <strong>{item.quantity}</strong>
-                    </p>
-                    <p className="text-gray-600 text-xs mt-1">
-                      Sub Total: <strong>${(remaining * item.currentUnitPrice).toFixed(2)}</strong>
-                    </p>
-                  </div>
+              return (
+               // dentro del map(filteredCart)
+            <CartCard
+              key={item.sku}
+              item={item}
+              delQty={get(item.sku)}                          // ← arranca en 1
+              onDecrease={() => decrement(item.sku)}         // no baja de 1
+              onIncrease={() => increment(item.sku, item.quantity)} // tope = quantity en carrito
+              onDelete={() => {
+                const toDelete = get(item.sku);              // siempre ≥ 1
+                const remaining = item.quantity - toDelete;
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => decrement(item.sku)}
-                      disabled={delQty <= 1}
-                      className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      ➖
-                    </Button>
+                if (remaining <= 0) {
+                  removeFromCart(item.sku);
+                } else {
+                  updateQuantity(item.sku, remaining);
+                  reset(item.sku, 1);                        // volver a 1 para la próxima
+                }
 
-                    <span className="w-6 text-center text-sm font-semibold">{delQty}</span>
+                openNotification(`Se eliminó "${item.name}" del carrito.`);
+              }}
+            />
 
-                    <Button
-                      onClick={() => increment(item.sku, item.quantity)}
-                      disabled={delQty >= item.quantity}
-                      className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      ➕
-                    </Button>
+              );
+            })
+          )}
 
-                    <Button
-                      className="ml-2 text-xs px-3 py-1 font-semibold"
-                      onClick={() => {
-                        const newQty = item.quantity - delQty;
-                        
-                        if (newQty <= 0) {
-                          removeFromCart(item.sku);
-                        } else {
-                          updateQuantity(item.sku, newQty);
-                        }
-
-                        reset(item.sku);
-                        openNotification(`Se eliminó "${item.name}" del carrito.`); 
-                      }}
-                    >
-                      Borrar
-                    </Button>
-                  </div>
-                </div>
-
-                {delQty >= item.quantity && (
-                  <p className="text-red-600 text-xs font-medium mt-2">
-                    Si borra, este producto se eliminará del carrito
-                  </p>
-                )}
-              </Card>
-            );
-          }))}
         </div>
 
         {/* Order summary - MOBILE FIXED BOTTOM */}
