@@ -251,7 +251,7 @@ function CartPage() {
         <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3">
           <div className="page-container">
             <div className="text-sm mb-3">
-              <p className="text-gray-600">Cantidad de en total: <strong>{totalItems}</strong></p>
+              <p className="text-gray-600">Cantidad de productos en total: <strong>{totalItems}</strong></p>
               <p className="text-lg font-semibold">Total a pagar: <strong>${totalAmount.toFixed(2)}</strong></p>
             </div>
             <Button
