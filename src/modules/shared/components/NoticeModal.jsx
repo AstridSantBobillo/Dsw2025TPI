@@ -7,7 +7,7 @@ export default function NoticeModal({ isOpen, isClosing, message, onClose }) {
         className={`
           pointer-events-auto bg-white shadow-xl rounded-lg border p-4 w-64
           transition-all duration-300
-          ${isClosing ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"}
+          ${isClosing ? 'opacity-0 translate-y-3' : 'opacity-100 translate-y-0'}
         `}
       >
         <div className="flex justify-between items-start">
@@ -24,4 +24,3 @@ export default function NoticeModal({ isOpen, isClosing, message, onClose }) {
     </div>
   );
 }
-

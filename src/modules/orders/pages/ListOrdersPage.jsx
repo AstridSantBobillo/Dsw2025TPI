@@ -7,8 +7,8 @@ import useSearchState from '../../shared/hooks/useSearchState';
 // Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
-import SearchBar from '../../shared/components/SearchBar';   
-import Pagination from '../../shared/components/Pagination'; 
+import SearchBar from '../../shared/components/SearchBar';
+import Pagination from '../../shared/components/Pagination';
 import OrderCard from '../../orders/components/OrderCard';
 
 // Services
@@ -36,7 +36,6 @@ function ListOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
 
-
   const normalizeOrdersResponse = (raw) => {
     // 204 o null/undefined
     if (!raw) return { totalCount: 0, items: [] };
@@ -46,39 +45,41 @@ function ListOrdersPage() {
 
     // Objeto con distintas posibles keys
     const totalCount = Number(
-      raw.totalCount ?? raw.total ?? raw.count ?? 0
+      raw.totalCount ?? raw.total ?? raw.count ?? 0,
     ) || 0;
 
     const items = Array.isArray(raw.items)
       ? raw.items
       : Array.isArray(raw.results)
-      ? raw.results
-      : [];
+        ? raw.results
+        : [];
 
     return { totalCount, items };
   };
-
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
+
       if (error) throw error;
 
       const norm = normalizeOrdersResponse(data);
+
       setTotal(norm.totalCount);
       setOrders(norm.items);
-      } catch (error) {
-        console.error(error);
-        setTotal(0);
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    } catch (error) {
+      console.error(error);
+      setTotal(0);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, status, pageSize, pageNumber]);
 
   const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
@@ -89,6 +90,7 @@ function ListOrdersPage() {
   useEffect(() => {
     if (total > 0) {
       const tp = Math.max(1, Math.ceil(total / pageSize));
+
       if (pageNumber > tp || pageNumber === 0) setPageNumber(1);
     }
   }, [total, pageSize, pageNumber]);
@@ -109,7 +111,9 @@ function ListOrdersPage() {
             value={inputValue}
             onChange={(e) => {
               const v = e.target.value;
+
               setInputValue(v);
+
               if (v.trim() === '') {
                 clear();
                 setPageNumber(1);
@@ -148,7 +152,7 @@ function ListOrdersPage() {
       </Card>
 
       <div className="mt-4 flex flex-col gap-4">
-         {loading && <span className="animate-pulse">Cargando órdenes...</span>}
+        {loading && <span className="animate-pulse">Cargando órdenes...</span>}
 
         {!loading && total === 0 && (
           <Card className="p-4 text-center text-gray-600">
@@ -158,14 +162,14 @@ function ListOrdersPage() {
 
         {hasResults &&
           orders.map((order, index) => (
-          <div key={order.id} style={{ animationDelay: `${index * 50}ms` }}>
-            <OrderCard
-              order={order}
-              onView={() => navigate(`/admin/orders/${order.id}`)}
-            />
-          </div>
-        ))
-      }
+            <div key={order.id} style={{ animationDelay: `${index * 50}ms` }}>
+              <OrderCard
+                order={order}
+                onView={() => navigate(`/admin/orders/${order.id}`)}
+              />
+            </div>
+          ))
+        }
       </div>
 
       {/* PAGINACIÓN */}
@@ -197,4 +201,3 @@ function ListOrdersPage() {
 }
 
 export default ListOrdersPage;
-

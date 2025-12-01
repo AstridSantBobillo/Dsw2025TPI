@@ -8,17 +8,16 @@ export const getOrders = async (customerId = null, status = null, pageNumber = 1
     pageSize,
   });
 
-  
   try {
     // Primero intento con axios
     const response = await instance.get(`api/orders?${queryString}`);
 
-     if (response.status === 204) {
+    if (response.status === 204) {
       return { data: { totalCount: 0, items: [] }, error: null };
     }
 
     return { data: response.data, error: null };
-  } catch (err) {
+  } catch {
     try {
       // Si axios falla, intento con fetch manual
       const url = `api/orders?${queryString}`;
@@ -30,10 +29,9 @@ export const getOrders = async (customerId = null, status = null, pageNumber = 1
         },
       });
 
-      
-     if (response.status === 204) {
-      return { data: { totalCount: 0, items: [] }, error: null };
-    }
+      if (response.status === 204) {
+        return { data: { totalCount: 0, items: [] }, error: null };
+      }
 
       const text = await response.text();
       const data = text ? JSON.parse(text) : null;
@@ -43,9 +41,11 @@ export const getOrders = async (customerId = null, status = null, pageNumber = 1
       }
 
       const items = data?.items || data?.results || data || [];
+
       return { data: Array.isArray(items) ? items : [], error: null };
     } catch (error) {
       console.error('Error al listar órdenes:', error);
+
       return { data: [], error };
     }
   }

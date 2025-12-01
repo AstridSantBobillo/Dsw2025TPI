@@ -7,7 +7,7 @@ import useAuth from '../hook/useAuth';
 
 //Components
 import Input from '../../shared/components/Input';
-import PasswordInput from "../../shared/components/PasswordInput";
+import PasswordInput from '../../shared/components/PasswordInput';
 import Button from '../../shared/components/Button';
 
 //Helpers
@@ -114,7 +114,7 @@ function LoginForm({ onSuccess }) {
         )}
       </div>
 
-        {errorMessages.length > 0 ? (
+      {errorMessages.length > 0 ? (
         <ul className="text-red-500 text-sm space-y-1">
           {errorMessages.map((msg, idx) => (
             <li key={idx}>{msg}</li>

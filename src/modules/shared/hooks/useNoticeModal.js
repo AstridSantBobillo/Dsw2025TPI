@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export default function useNoticeModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('');
 
   const open = (msg) => {
-    setMessage(msg || "");
+    setMessage(msg || '');
     setIsOpen(true);
     setIsClosing(false);
   };
@@ -15,7 +15,7 @@ export default function useNoticeModal() {
     setIsClosing(true);
     setTimeout(() => {
       setIsOpen(false);
-      setMessage("");
+      setMessage('');
       setIsClosing(false);
     }, 300); // duración de fadeOut
   };

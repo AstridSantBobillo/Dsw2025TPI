@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Hooks
@@ -26,9 +26,9 @@ function CartPage() {
   const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
   const { user } = useAuth();
-  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
   const { get, increment, decrement, reset } = useDeleteQuantity();
-  const { isOpen, isClosing, message, open : openNotification, close: closeNotification } = useNoticeModal();
+  const { isOpen, isClosing, message, open : openNotification } = useNoticeModal();
 
   const {
     state: modals,
@@ -44,7 +44,6 @@ function CartPage() {
 
   const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
 
-
   useEffect(() => {
     const openLogin = () => open('loginModal');
     const openRegister = () => open('registerModal');
@@ -56,6 +55,7 @@ function CartPage() {
       window.removeEventListener('open-login', openLogin);
       window.removeEventListener('open-register', openRegister);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sendOrder = async () => {
@@ -77,14 +77,15 @@ function CartPage() {
         })),
       };
 
-      const { data, error } = await createOrder(orderData);
+      const { error } = await createOrder(orderData);
+
       if (error) throw error;
 
       clearCart();
       navigate('/');
     } catch (err) {
       console.error(err);
-      openNotification('Error al procesar la orden.'); 
+      openNotification('Error al procesar la orden.');
     }
   };
 
@@ -116,8 +117,8 @@ function CartPage() {
   }
 
   const filteredCart = cart.filter((item) =>
-  item.name.toLowerCase().includes(searchTerm.toLowerCase())
-);
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   return (
     <div className="page-container pb-40 sm:pb-0">
@@ -125,19 +126,20 @@ function CartPage() {
       <UserHeaderMenu
         title="Carrito"
         search={{
-            value: inputValue,
-            onChange: (e) => {
-              const v = e.target.value;
-              setInputValue(v);
+          value: inputValue,
+          onChange: (e) => {
+            const v = e.target.value;
 
-              if (v.trim() === "") {
-                clear("");
-              }
-            },
-            onSearch: () => {
-              commit();
-            },
-          }}
+            setInputValue(v);
+
+            if (v.trim() === '') {
+              clear('');
+            }
+          },
+          onSearch: () => {
+            commit();
+          },
+        }}
         onGoProducts={() => navigate('/')}
         onGoHome={() => navigate('/')}
         onGoCart={null}
@@ -172,35 +174,33 @@ function CartPage() {
       <div className="mt-4 flex flex-col sm:flex-row gap-[3px] sm:gap-4">
         {/* Cart items */}
         <div className="flex-1 flex flex-col gap-[3px] sm:gap-4">
-           {filteredCart.length === 0 ? (
+          {filteredCart.length === 0 ? (
             <Card className="p-4 text-center text-gray-600">
               No hay productos en el carrito que coincidan con la búsqueda.
             </Card>
           ) : (
-            filteredCart.map((item, index) => {
-              const delQty = get(item.sku);
-
+            filteredCart.map((item) => {
               return (
-               // dentro del map(filteredCart)
-            <CartCard
-              key={item.sku}
-              item={item}
-              delQty={get(item.sku)}                          // ← arranca en 1
-              onDecrease={() => decrement(item.sku)}         // no baja de 1
-              onIncrease={() => increment(item.sku, item.quantity)} // tope = quantity en carrito
-              onDelete={(qtyToDelete) => {                 // ⬅️ ahora recibe la cantidad
-                const remaining = item.quantity - qtyToDelete;
+              // dentro del map(filteredCart)
+                <CartCard
+                  key={item.sku}
+                  item={item}
+                  delQty={get(item.sku)}                          // ← arranca en 1
+                  onDecrease={() => decrement(item.sku)}         // no baja de 1
+                  onIncrease={() => increment(item.sku, item.quantity)} // tope = quantity en carrito
+                  onDelete={(qtyToDelete) => {                 // ⬅️ ahora recibe la cantidad
+                    const remaining = item.quantity - qtyToDelete;
 
-                if (remaining <= 0) {
-                  removeFromCart(item.sku);
-                } else {
-                  updateQuantity(item.sku, remaining);
-                }
+                    if (remaining <= 0) {
+                      removeFromCart(item.sku);
+                    } else {
+                      updateQuantity(item.sku, remaining);
+                    }
 
-                reset(item.sku, 1); // volver a 1 para la próxima
-                openNotification(`Se eliminó "${item.name}" del carrito.`);
-              }}
-            />
+                    reset(item.sku, 1); // volver a 1 para la próxima
+                    openNotification(`Se eliminó "${item.name}" del carrito.`);
+                  }}
+                />
               );
             })
           )}
@@ -254,7 +254,7 @@ function CartPage() {
       />
 
       <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
-      
+
     </div>
   );
 }

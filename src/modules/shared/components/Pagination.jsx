@@ -4,8 +4,8 @@ export default function Pagination({
   onChangePage,
   pageSize,
   onChangePageSize,
-  sizes = [2, 10, 15, 20], 
-  className = "",
+  sizes = [2, 10, 15, 20],
+  className = '',
   showPageSize = true,
 }) {
   const canPrev = page > 1;

@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState } from 'react';
 
-export default function useSearchState(initial = "") {
+export default function useSearchState(initial = '') {
   const [inputValue, setInputValue] = useState(initial);
   const [searchTerm, setSearchTerm] = useState(initial);
 
@@ -9,8 +9,8 @@ export default function useSearchState(initial = "") {
   }, [inputValue]);
 
   const clear = useCallback(() => {
-    setInputValue("");
-    setSearchTerm("");
+    setInputValue('');
+    setSearchTerm('');
   }, []);
 
   return {

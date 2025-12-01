@@ -1,16 +1,16 @@
 // Components
-import Card from "../../shared/components/Card";
-import Button from "../../shared/components/Button";
+import Card from '../../shared/components/Card';
+import Button from '../../shared/components/Button';
 
 function StatusPill({ active }) {
   return (
     <span
       className={[
-        "px-2 py-1 rounded-full text-xs font-medium",
-        active ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-700",
-      ].join(" ")}
+        'px-2 py-1 rounded-full text-xs font-medium',
+        active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700',
+      ].join(' ')}
     >
-      {active ? "ACTIVADO" : "DESACTIVADO"}
+      {active ? 'ACTIVADO' : 'DESACTIVADO'}
     </span>
   );
 }
@@ -29,7 +29,7 @@ export default function AdminProductCard({
   onEdit,
   trailing,
 }) {
-  const { sku, name, stockQuantity, currentUnitPrice, isActive } = product || {};
+  const { sku, name, stockQuantity, isActive } = product || {};
 
   return (
     <Card className="animate-slideUp">
@@ -42,7 +42,7 @@ export default function AdminProductCard({
           <div className="text-sm text-gray-700 mt-1">
             Stock: {stockQuantity} - Estado: <StatusPill active={!!isActive} />
           </div>
-          
+
         </div>
 
         <div className="flex items-center gap-2">

@@ -7,8 +7,8 @@ import useSearchState from '../../shared/hooks/useSearchState';
 // Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
-import SearchBar from '../../shared/components/SearchBar';    
-import Pagination from '../../shared/components/Pagination'; 
+import SearchBar from '../../shared/components/SearchBar';
+import Pagination from '../../shared/components/Pagination';
 import AdminProductCard from '../../products/components/AdminProductCard';
 
 // Services
@@ -23,7 +23,7 @@ const productStatus = {
 function ListProductsPage() {
   const navigate = useNavigate();
 
-  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
 
   const [ status, setStatus ] = useState(productStatus.ALL);
   const [ pageNumber, setPageNumber ] = useState(1);
@@ -35,16 +35,17 @@ function ListProductsPage() {
   const [loading, setLoading] = useState(false);
 
   const normalizeProductsResponse = (raw) => {
-  if (!raw) return { total: 0, productItems: [] };            // 204 / null
-  if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
+    if (!raw) return { total: 0, productItems: [] };            // 204 / null
 
-  const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
-  const productItems =
+    if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
+
+    const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
+    const productItems =
     Array.isArray(raw.productItems) ? raw.productItems :
-    Array.isArray(raw.items)        ? raw.items        :
-    Array.isArray(raw.results)      ? raw.results      : [];
+      Array.isArray(raw.items)        ? raw.items        :
+        Array.isArray(raw.results)      ? raw.results      : [];
 
-  return { total, productItems };
+    return { total, productItems };
   };
 
   useEffect(() => {
@@ -52,9 +53,11 @@ function ListProductsPage() {
       try {
         setLoading(true);
         const { data, error } = await getProducts(searchTerm, status, pageNumber, pageSize);
+
         if (error) throw error;
 
         const norm = normalizeProductsResponse(data);
+
         setTotal(norm.total);
         setProducts(norm.productItems);
       } catch (error) {
@@ -76,7 +79,7 @@ function ListProductsPage() {
 
   return (
     <div>
-      <Card className="overflow-visible"> 
+      <Card className="overflow-visible">
         <div
           className='flex justify-between items-center mb-3'
         >
@@ -99,15 +102,17 @@ function ListProductsPage() {
           </Button>
         </div>
 
-         <div className='flex flex-col sm:flex-row gap-4 sm:items-center'>
+        <div className='flex flex-col sm:flex-row gap-4 sm:items-center'>
           {/* SearchBar admin */}
           <SearchBar
             variant="admin"
             value={inputValue}
             onChange={(e) => {
               const v = e.target.value;
+
               setInputValue(v);
-              if (v.trim() === "") {
+
+              if (v.trim() === '') {
                 clear();
                 setPageNumber(1);
               }
@@ -151,7 +156,7 @@ function ListProductsPage() {
         )}
 
         {hasResults &&
-          products.map((product, index) => (
+          products.map((product) => (
             <AdminProductCard
               key={product.sku}
               product={product}
@@ -160,8 +165,7 @@ function ListProductsPage() {
         }
       </div>
 
-
-       {/* PAGINATION  */}
+      {/* PAGINATION  */}
       <Card className="mt-6 overflow-visible">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <Pagination
@@ -176,7 +180,7 @@ function ListProductsPage() {
             sizes={[2, 10, 15, 20]}
             showPageSize
             compact
-            className="flex flex-wrap gap-2 justify-center sm:justify-start" 
+            className="flex flex-wrap gap-2 justify-center sm:justify-start"
           />
 
           <div className="text-sm text-gray-600">

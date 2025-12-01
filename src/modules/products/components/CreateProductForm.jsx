@@ -55,6 +55,7 @@ function CreateProductForm() {
     const apply = (code, messageFallback) => {
       const field = fieldByCode[code];
       const message = frontendErrorMessage[code] || messageFallback;
+
       if (field && message) {
         setError(field, { type: 'backend', message });
         hasFieldMatch = true;
@@ -84,7 +85,7 @@ function CreateProductForm() {
 
       navigate('/admin/products');
     } catch (error) {
-       const backendError = error?.backendError || error; // por si tu wrapper ya setea backendError
+      const backendError = error?.backendError || error; // por si tu wrapper ya setea backendError
 
       if (backendError) {
         const matched = setFieldErrorsFromBackend(backendError);
@@ -100,9 +101,10 @@ function CreateProductForm() {
               backendError.backendMessage ||
               backendError.detail ||
               backendError.message ||
-              'Contactar a Soporte'
+              'Contactar a Soporte',
           );
         }
+
         return;
       }
 
@@ -175,7 +177,7 @@ function CreateProductForm() {
         <div className='sm:text-end'>
           <Button type='submit' className='w-full sm:w-fit'>Crear Producto</Button>
         </div>
-        
+
         {errorBackendMessage && <span className='text-red-500'>{errorBackendMessage}</span>}
       </form>
     </Card>

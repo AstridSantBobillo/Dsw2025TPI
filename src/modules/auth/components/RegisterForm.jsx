@@ -14,7 +14,7 @@ import Button from '../../shared/components/Button';
 import { frontendErrorMessage } from '../helpers/backendError';
 
 function RegisterForm({ onSuccess, fixedRole }) {
-  
+
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
   const { register: registerUser } = useAuth();
@@ -55,8 +55,9 @@ function RegisterForm({ onSuccess, fixedRole }) {
         const field = fieldByCode[err.code];
         const message = frontendErrorMessage[err.code] || err.message;
 
-         if (field && message) {
+        if (field && message) {
           const fieldList = Array.isArray(field) ? field : [field];
+
           fieldList.forEach((field) => {
             setError(field, { type: 'backend', message });
           });
@@ -80,16 +81,19 @@ function RegisterForm({ onSuccess, fixedRole }) {
             || 'No se pudo completar el registro',
           );
         }
+
         return;
       }
 
       if (onSuccess) return onSuccess();
+
       navigate('/login');
     } catch (err) {
       const backendError = err.backendError;
 
       if (backendError) {
         const matched = setFieldErrorsFromBackend(backendError);
+
         if (!matched) {
           setErrorMessage(
             backendError.frontendErrorMessage
@@ -97,6 +101,7 @@ function RegisterForm({ onSuccess, fixedRole }) {
             || 'Llame a soporte',
           );
         }
+
         return;
       }
 
