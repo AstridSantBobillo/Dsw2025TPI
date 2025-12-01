@@ -1,23 +1,30 @@
 import Card from "../../shared/components/Card";
 import Button from "../../shared/components/Button";
 
+/**
+ * Props:
+ * - item: { sku, name, quantity, currentUnitPrice }
+ * - delQty: number  (cantidad "a borrar" => default 1)
+ * - onDecrease(): void
+ * - onIncrease(): void
+ * - onDelete(toDelete: number): void   ⬅️ recibe la cantidad a borrar
+ */
 export default function CartCard({
-  item,            // { sku, name, quantity, currentUnitPrice }
-  delQty = 0,      // cantidad "a borrar" que guarda el hook
-  onDecrease,      // decrementa delQty (solo si > 1)
-  onIncrease,      // incrementa delQty (hasta quantity)
-  onDelete,        // aplica el borrado con toDelete calculado
+  item,
+  delQty = 1,         // ⬅️ arranca en 1
+  onDecrease,
+  onIncrease,
+  onDelete,
   className = "",
   style,
 }) {
-  // Valor que mostramos en UI: mínimo 1
-  const uiQty = Math.max(1, delQty || 0);
+  const uiQty = Math.max(1, Number.isFinite(delQty) ? delQty : 1);
 
-  // Subtotal REAL del carrito (no previsualizamos)
+  // Totales reales (no previsualizamos borrado)
   const subTotal = item.quantity * item.currentUnitPrice;
-// dentro de CartCard (referencia rápida)
-const disableMinus = delQty <= 1;
-const disablePlus = delQty >= item.quantity;
+
+  const disableMinus = uiQty <= 1;
+  const disablePlus  = uiQty >= item.quantity;
 
   return (
     <Card className={`p-4 animate-slideUp ${className}`} style={style}>
@@ -35,11 +42,8 @@ const disablePlus = delQty >= item.quantity;
         </div>
 
         <div className="flex items-center gap-2">
-          {/* ➖ bajar "a borrar" (mínimo 1) */}
           <Button
-            onClick={() => {
-              if (!disableMinus) onDecrease();
-            }}
+            onClick={() => !disableMinus && onDecrease()}
             disabled={disableMinus}
             className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Borrar una unidad menos"
@@ -48,16 +52,10 @@ const disablePlus = delQty >= item.quantity;
             ➖
           </Button>
 
-          {/* Mostrar SIEMPRE al menos 1 */}
-          <span className="w-6 text-center text-sm font-semibold">
-            {uiQty}
-          </span>
+          <span className="w-6 text-center text-sm font-semibold">{uiQty}</span>
 
-          {/* ➕ subir "a borrar" (máximo stock en carrito) */}
           <Button
-            onClick={() => {
-              if (!disablePlus) onIncrease();
-            }}
+            onClick={() => !disablePlus && onIncrease()}
             disabled={disablePlus}
             className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Borrar una unidad más"
@@ -68,7 +66,7 @@ const disablePlus = delQty >= item.quantity;
 
           <Button
             className="ml-2 text-xs px-3 py-1 font-semibold"
-            onClick={() => onDelete(uiQty)} // ← pasamos la UI (>=1)
+            onClick={() => onDelete(uiQty)}   // ⬅️ pasamos la cantidad a borrar
           >
             Borrar
           </Button>

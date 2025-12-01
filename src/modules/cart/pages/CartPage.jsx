@@ -188,21 +188,19 @@ function CartPage() {
               delQty={get(item.sku)}                          // ← arranca en 1
               onDecrease={() => decrement(item.sku)}         // no baja de 1
               onIncrease={() => increment(item.sku, item.quantity)} // tope = quantity en carrito
-              onDelete={() => {
-                const toDelete = get(item.sku);              // siempre ≥ 1
-                const remaining = item.quantity - toDelete;
+              onDelete={(qtyToDelete) => {                 // ⬅️ ahora recibe la cantidad
+                const remaining = item.quantity - qtyToDelete;
 
                 if (remaining <= 0) {
                   removeFromCart(item.sku);
                 } else {
                   updateQuantity(item.sku, remaining);
-                  reset(item.sku, 1);                        // volver a 1 para la próxima
                 }
 
+                reset(item.sku, 1); // volver a 1 para la próxima
                 openNotification(`Se eliminó "${item.name}" del carrito.`);
               }}
             />
-
               );
             })
           )}
