@@ -1,69 +1,38 @@
-import { useState, useEffect } from "react";
+import useLocalStorage from "../../shared/hooks/useLocalStorage";
 
 const CART_KEY = "cart";
 
 export function useCart() {
-  const [cart, setCart] = useState([]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(CART_KEY);
-    if (stored) setCart(JSON.parse(stored));
-  }, []);
-
-  const save = (items) => {
-    setCart(items);
-    localStorage.setItem(CART_KEY, JSON.stringify(items));
-  };
+  const [cart, setCart] = useLocalStorage(CART_KEY, []);
 
   const addToCart = (product, quantity) => {
-    if (quantity < 1) return alert("Debes agregar al menos 1 producto.");
-
-    const updated = [...cart];
-    const existing = updated.find((i) => i.sku === product.sku);
-
-     const productToAdd = {
-    ...product,
-    quantity,
-    productId: product.id ?? product.sku, // <-- agregamos productId
+    if (quantity < 1) return;
+    setCart(prev => {
+      const idx = prev.findIndex(i => i.sku === product.sku);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + quantity };
+        return next;
+      }
+      return [...prev, {
+        ...product,
+        productId: product.id ?? product.sku,
+        quantity
+      }];
+    });
   };
 
-  if (existing) {
-    existing.quantity += quantity;
-  } else {
-    updated.push(productToAdd);
-  }
-    save(updated);
-  };
+  const removeFromCart = sku =>
+    setCart(prev => prev.filter(i => i.sku !== sku));
 
-  const removeFromCart = (sku) => {
-    save(cart.filter((i) => i.sku !== sku));
-  };
-
-  const clearCart = () => {
-    localStorage.removeItem(CART_KEY);
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
   const updateQuantity = (sku, newQuantity) => {
-  if (newQuantity <= 0) {
-    return removeFromCart(sku);
-  }
-
-  const updated = cart.map(item =>
-    item.sku === sku
-      ? { ...item, quantity: newQuantity }
-      : item
-  );
-
-  save(updated);
-};
-
-
-  return {
-    cart,
-    addToCart,
-    removeFromCart,
-    clearCart,
-    updateQuantity
+    setCart(prev => {
+      if (newQuantity <= 0) return prev.filter(i => i.sku !== sku);
+      return prev.map(i => i.sku === sku ? { ...i, quantity: newQuantity } : i);
+    });
   };
+
+  return { cart, addToCart, removeFromCart, clearCart, updateQuantity };
 }

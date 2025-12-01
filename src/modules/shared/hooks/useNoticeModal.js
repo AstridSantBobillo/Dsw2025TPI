@@ -29,7 +29,7 @@ export default function useNoticeModal() {
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [isOpen]); // SIN .length
+  }, [isOpen]);
 
   return { isOpen, isClosing, message, open, close };
 }

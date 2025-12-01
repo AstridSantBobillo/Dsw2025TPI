@@ -1,8 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+//Hooks
+import useSearchState from '../../shared/hooks/useSearchState';
+
+// Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
-import { getOrders } from '../services/listServices'; // nuevo servicio
+import SearchBar from '../../shared/components/SearchBar';   
+import Pagination from '../../shared/components/Pagination'; 
+
+// Services
+import { getOrders } from '../services/listServices';
 
 const orderStatus = {
   ALL: '',
@@ -17,8 +26,7 @@ const orderStatus = {
 function ListOrdersPage() {
   const navigate = useNavigate();
 
-  const [inputValue, setInputValue] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
   const [status, setStatus] = useState(orderStatus.ALL);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -34,33 +42,19 @@ function ListOrdersPage() {
       if (error) throw error;
 
       setTotal(data.totalCount);      
-    setOrders(data.items ?? []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      setOrders(data.items ?? []);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-useEffect(() => {
+  useEffect(() => {
     fetchOrders();
   }, [searchTerm, status, pageSize, pageNumber]);
 
   const totalPages = Math.ceil(total / pageSize);
-
-  const handleSearch = () => {
-    setSearchTerm(inputValue.trim());
-    setPageNumber(1);
-  };
-
-  const handleChange = (v) => {
-    setInputValue(v);
-
-    if (v.trim() === '') {
-      setSearchTerm('');
-      setPageNumber(1);
-    }
-  };
 
   return (
     <div>
@@ -69,40 +63,40 @@ useEffect(() => {
           <h1 className="text-3xl">Órdenes</h1>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex items-center gap-3">
-             <input
-              value={inputValue}
-              onChange={(e) => handleChange(e.target.value)}
-              onKeyDown={(e) => {if (e.key === 'Enter') handleSearch();}}
-              type="text"
-              placeholder="Buscar"
-              className="text-[1.3rem] w-full"
-            />
-           <Button onClick={handleSearch} className="h-11 w-11 flex items-center justify-center p-0">
-             <svg 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6"
-              >
-                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path 
-                    d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" 
-                    stroke="#000000" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  />
-                </g>
-              </svg>
-            </Button>
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+          {/*  SearchBar estilo admin + botón limpiar */}
+          <SearchBar
+            variant="admin"
+            value={inputValue}
+            onChange={(e) => {
+              const v = e.target.value;
+              setInputValue(v);
+              if (v.trim() === '') {
+                clear();
+                setPageNumber(1);
+              }
+            }}
+            onSearch={() => {
+              commit();
+              setPageNumber(1);
+            }}
+            onClear={() => {
+              clear();
+              setPageNumber(1);
+            }}
+            placeholder="Buscar (ID, cliente, estado)…"
+            className="sm:flex-1"
+          />
 
-          </div>
-
-          <select onChange={(evt) => {setStatus(evt.target.value); setPageNumber(1);}} className="text-[1.3rem]">
+          {/* Filtro de estado */}
+          <select
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPageNumber(1);
+            }}
+            className="text-[1.1rem] border rounded px-2 py-2"
+          >
             <option value={orderStatus.ALL}>Todos</option>
             <option value={orderStatus.PENDING}>Pendientes</option>
             <option value={orderStatus.PROCESSING}>Procesadas</option>
@@ -137,28 +131,30 @@ useEffect(() => {
         )}
       </div>
 
-      <div className="flex justify-center items-center mt-3">
-        <button disabled={pageNumber === 1} onClick={() => setPageNumber(pageNumber - 1)}>
-          Atrás
-        </button>
-        <span>{pageNumber} / {totalPages}</span>
-        <button disabled={pageNumber === totalPages} onClick={() => setPageNumber(pageNumber + 1)}>
-          Siguiente
-        </button>
+      {/* PAGINACIÓN */}
+      <Card className="mt-6 overflow-visible">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Pagination
+            page={pageNumber}
+            totalPages={Math.max(1, Math.ceil(total / pageSize))}
+            onChangePage={setPageNumber}
+            pageSize={pageSize}
+            onChangePageSize={(size) => {
+              setPageNumber(1);
+              setPageSize(size);
+            }}
+            sizes={[2, 10, 15, 20]}
+            showPageSize
+            compact
+            className="flex flex-wrap gap-2 justify-center sm:justify-start" // 👈 wrap
+          />
 
-        <select
-          value={pageSize}
-          onChange={(evt) => {
-            setPageNumber(1);
-            setPageSize(Number(evt.target.value));
-          }}
-        >
-          <option value="2">2</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-        </select>
-      </div>
+          <div className="text-sm text-gray-600">
+            Total: <strong>{total}</strong>
+          </div>
+        </div>
+      </Card>
+
     </div>
   );
 }

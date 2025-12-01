@@ -1,5 +1,8 @@
+// Components
 import Button from './Button';
 import SearchBar from './SearchBar';
+
+// Hooks
 import useAuth from '../../auth/hook/useAuth';
 
 export default function UserHeaderMenu({

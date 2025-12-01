@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
+// Components
 import Card from '../../shared/components/Card';
+
+// Services
 import { getOrders } from '../../orders/services/listServices';
 import { getProducts } from '../../products/services/list';
 

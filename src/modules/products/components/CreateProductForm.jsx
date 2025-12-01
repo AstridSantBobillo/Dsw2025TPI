@@ -1,10 +1,16 @@
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
+// Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import Input from '../../shared/components/Input';
+
+// Services
 import { createProduct } from '../services/create';
-import { useState } from 'react';
+
+// Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
 
 function CreateProductForm() {
@@ -28,7 +34,7 @@ function CreateProductForm() {
   const [errorBackendMessage, setErrorBackendMessage] = useState('');
   const navigate = useNavigate();
 
-  // Mapea códigos -> campos del formulario
+  // Mapea códigos de error del backend a campos del formulario
   const fieldByCode = {
     3001: 'sku',
     3002: 'cui',

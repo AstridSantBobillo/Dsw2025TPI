@@ -1,5 +1,6 @@
-// src/modules/shared/components/PasswordInput.jsx
 import { useState } from "react";
+
+// Components
 import Input from "./Input";
 import EyeIcon from "./EyeIcon";
 

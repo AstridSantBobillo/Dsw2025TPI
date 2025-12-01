@@ -1,4 +1,6 @@
 import { instance } from '../../shared/api/axiosInstance';
+
+// Helpers
 import { mapBackendError } from '../../shared/helpers/mapBackendError';
 import { frontendErrorMessage } from '../helpers/backendError';
 
@@ -8,7 +10,6 @@ export const register = async (username, password, email, role) => {
 
     return { data: response.data, error: null };
   } catch (err) {
-    // Siempre remapeamos con los mensajes del front para priorizarlos
     const mappedError = mapBackendError(err, frontendErrorMessage);
 
     return { data: null, error: mappedError };

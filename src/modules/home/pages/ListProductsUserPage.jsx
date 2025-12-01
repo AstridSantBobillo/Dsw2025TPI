@@ -1,15 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+//Hooks
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
+import useSearchState from '../../shared/hooks/useSearchState'; 
+
+// Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import UserHeaderMenu from '../../shared/components/UserHeaderMenu';
 import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
+import NoticeModal from '../../shared/components/NoticeModal';
+import Pagination from '../../shared/components/Pagination';
+
+// Services
 import { getClientProducts } from '../../products/services/listUser';
 import { useCart } from '../../cart/hooks/useCart';
-import useNoticeModal from '../../shared/hooks/useNoticeModal';
-import NoticeModal from '../../shared/components/NoticeModal';
 
 function ListProductsUserPage() {
   const defaultProductImage =
@@ -18,8 +26,7 @@ function ListProductsUserPage() {
   const navigate = useNavigate();
 
   // PRODUCT STATE
-  const [inputValue, setInputValue] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
   const [status] = useState('enabled');
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -100,12 +107,12 @@ function ListProductsUserPage() {
             setInputValue(v);
 
             if (v.trim() === "") {
-              setSearchTerm("");
+              clear();
               setPageNumber(1);
             }
           },
           onSearch: () => {
-            setSearchTerm(inputValue.trim());
+            commit();
             setPageNumber(1);
           },
         }}
@@ -163,17 +170,11 @@ function ListProductsUserPage() {
                   </p>
 
                   {/* Mostrar si ya está en el carrito */}
-                  {(() => {
-                    const cartItem = cart.find((item) => item.sku === product.sku);
-
-                    if (!cartItem) return null;
-
-                    return (
-                      <p className="text-sm mt-1 text-green-600 font-medium">
-                          Ya tienes {cartItem.quantity} en el carrito.
-                      </p>
-                    );
-                  })()}
+                  {cartItem && (
+                    <p className="text-sm mt-1 text-green-600 font-medium">
+                      Ya tienes {cartItem.quantity} en el carrito.
+                    </p>
+                  )}
 
                   <div className="flex items-center gap-4 mt-3 flex-1">
                     <Button
@@ -242,52 +243,29 @@ function ListProductsUserPage() {
       </div>
 
       {/* PAGINATION */}
-      <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-        {/* BOTONES DE NAVEGACIÓN */}
-        <div className="flex items-center gap-2">
-          <button
-            disabled={pageNumber === 1}
-            onClick={() => setPageNumber(pageNumber - 1)}
-            className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:px-5 sm:py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Atras
-          </button>
-
-          <span className="px-4 py-2 text-sm sm:text-base font-semibold border border-gray-200 rounded">
-            {pageNumber} / {totalPages}
-          </span>
-
-          <button
-            disabled={pageNumber === totalPages}
-            onClick={() => setPageNumber(pageNumber + 1)}
-            className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:px-5 sm:py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Siguiente
-          </button>
-        </div>
-
-        {/* SELECTOR DE TAMAÑO */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="pageSize" className="text-sm font-medium text-gray-600">
-            Por página:
-          </label>
-          <select
-            id="pageSize"
-            value={pageSize}
-            onChange={(evt) => {
+      <Card className="mt-6 overflow-visible">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Pagination
+            page={pageNumber}
+            totalPages={Math.max(1, Math.ceil(total / pageSize))}
+            onChangePage={setPageNumber}
+            pageSize={pageSize}
+            onChangePageSize={(size) => {
               setPageNumber(1);
-              setPageSize(Number(evt.target.value));
+              setPageSize(size);
             }}
-            className="border border-gray-200 rounded px-3 py-2 text-sm font-medium appearance-none bg-white"
-            style={{ direction: 'rtl' }}
-          >
-            <option value="2">2</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-          </select>
+            sizes={[2, 10, 15, 20]}
+            showPageSize
+            compact
+            className="flex flex-wrap gap-2 justify-center sm:justify-start" // 👈 wrap
+          />
+
+          <div className="text-sm text-gray-600">
+            Total: <strong>{total}</strong>
+          </div>
         </div>
-      </div>
+      </Card>
+
 
       {/* MODALS */}
       <LoginModal

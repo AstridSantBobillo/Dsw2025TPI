@@ -1,4 +1,3 @@
-// src/modules/shared/components/EyeIcon.jsx
 export default function EyeIcon({ open, className = "w-5 h-5" }) {
   return (
     <svg

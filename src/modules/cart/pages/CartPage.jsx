@@ -7,6 +7,7 @@ import { useCart } from '../hooks/useCart';
 import { useDeleteQuantity } from '../../shared/hooks/useDeleteQuantity';
 import { useToggleMap } from '../../shared/hooks/useToggleMap';
 import useNoticeModal from '../../shared/hooks/useNoticeModal';
+import useSearchState from '../../shared/hooks/useSearchState';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -24,12 +25,8 @@ function CartPage() {
   const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
   const { user } = useAuth();
-  const [inputValue, setInputValue] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-
-
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
   const { deleteQuantities, get, increment, decrement, reset } = useDeleteQuantity();
-
   const { isOpen, isClosing, message, open : openNotification, close: closeNotification } = useNoticeModal();
 
   const {
@@ -82,8 +79,8 @@ function CartPage() {
       };
 
       const { data, error } = await createOrder(orderData);
-
       if (error) throw error;
+
       clearCart();
       navigate('/');
     } catch (err) {
@@ -135,11 +132,11 @@ function CartPage() {
               setInputValue(v);
 
               if (v.trim() === "") {
-                setSearchTerm("");
+                clear("");
               }
             },
             onSearch: () => {
-              setSearchTerm(inputValue.trim());
+              commit();
             },
           }}
         onGoProducts={() => navigate('/')}
