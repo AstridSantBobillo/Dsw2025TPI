@@ -1,5 +1,5 @@
 // Components
-import Button from "../../shared/components/Button";
+import Button from '../../shared/components/Button';
 
 function QuantitySelector({ value, min = 1, max = 99, onChange }) {
   const dec = () => onChange(Math.max(min, value - 1));

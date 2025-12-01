@@ -1,5 +1,5 @@
-import Card from "../../shared/components/Card";
-import Button from "../../shared/components/Button";
+import Card from '../../shared/components/Card';
+import Button from '../../shared/components/Button';
 
 /**
  * Props:
@@ -15,7 +15,7 @@ export default function CartCard({
   onDecrease,
   onIncrease,
   onDelete,
-  className = "",
+  className = '',
   style,
 }) {
   const uiQty = Math.max(1, Number.isFinite(delQty) ? delQty : 1);

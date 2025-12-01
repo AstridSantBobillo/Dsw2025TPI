@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react'; 
+import { createContext, useState } from 'react';
 
 // Services
 import { login } from '../services/login';
@@ -11,7 +11,9 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const storedUser = localStorage.getItem('user');
-      if (!storedUser || storedUser === "undefined") return null;
+
+      if (!storedUser || storedUser === 'undefined') return null;
+
       return JSON.parse(storedUser);
     } catch {
       return null;
@@ -20,6 +22,7 @@ function AuthProvider({ children }) {
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const token = localStorage.getItem('token');
+
     return Boolean(token);
   });
 
@@ -49,6 +52,7 @@ function AuthProvider({ children }) {
 
   const register = async (username, password, email, role) => {
     const { error } = await registerService(username, password, email, role);
+
     return { error: error || null };
   };
 

@@ -8,11 +8,11 @@ const frontendErrorMessage = {
   2006: 'La contraseña debe incluir al menos una mayúscula',
   2007: 'La contraseña debe incluir al menos una minúscula',
   2008: 'La contraseña debe incluir al menos un carácter especial',
-  
+
   // Roles / authorization
   7001: 'Rol inválido para esta operación',
 
-    // Identity / UserManager
+  // Identity / UserManager
   8001: 'No se pudo completar la operación de identidad. Intenta nuevamente.',
 
   // Unique constraints (BadRequest 9000s)

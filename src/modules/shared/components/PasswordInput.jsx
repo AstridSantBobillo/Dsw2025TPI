@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 // Components
-import Input from "./Input";
-import EyeIcon from "./EyeIcon";
+import Input from './Input';
+import EyeIcon from './EyeIcon';
 
 export default function PasswordInput({
-  label = "Contraseña",
+  label = 'Contraseña',
   error,
   compact,
   registerProps = {},
@@ -20,7 +20,7 @@ export default function PasswordInput({
     <Input
       label={label}
       compact={compact}
-      type={show ? "text" : "password"}
+      type={show ? 'text' : 'password'}
       error={error}
       id={id}
       name={name}
@@ -32,7 +32,7 @@ export default function PasswordInput({
           type="button"
           onClick={() => setShow((p) => !p)}
           className="h-10 w-10 flex items-center justify-center rounded border bg-gray-50 hover:bg-gray-100 hover:scale-110 active:scale-95 transition-transform duration-200"
-          aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
+          aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
         >
           <EyeIcon open={show} />
         </button>

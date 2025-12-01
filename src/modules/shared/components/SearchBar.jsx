@@ -1,21 +1,21 @@
-import Button from "./Button";
+import Button from './Button';
 
 const base =
-  "w-full flex items-center gap-1 h-10";
+  'w-full flex items-center gap-1 h-10';
 const stylesByVariant = {
   shop: {
     input:
-      "border rounded w-full h-full px-2 py-1 text-sm sm:px-3 sm:text-base",
+      'border rounded w-full h-full px-2 py-1 text-sm sm:px-3 sm:text-base',
     button:
-      "h-10 w-10 p-0 flex items-center justify-center flex-shrink-0",
-    placeholder: "Buscar productos...",
+      'h-10 w-10 p-0 flex items-center justify-center flex-shrink-0',
+    placeholder: 'Buscar productos...',
   },
   admin: {
     input:
-      "border rounded-lg w-full h-11 px-3 text-[1.05rem] sm:text-[1.1rem]",
+      'border rounded-lg w-full h-11 px-3 text-[1.05rem] sm:text-[1.1rem]',
     button:
-      "h-11 px-3 whitespace-nowrap flex items-center justify-center rounded-lg",
-    placeholder: "Buscar…",
+      'h-11 px-3 whitespace-nowrap flex items-center justify-center rounded-lg',
+    placeholder: 'Buscar…',
   },
 };
 
@@ -26,8 +26,8 @@ export default function SearchBar({
   onClear,
   disabled = false,
   placeholder,
-  variant = "shop", // "shop" | "admin"
-  className = "",
+  variant = 'shop', // "shop" | "admin"
+  className = '',
   showClear = true,
 }) {
   const v = stylesByVariant[variant] ?? stylesByVariant.shop;
@@ -40,8 +40,9 @@ export default function SearchBar({
         disabled={disabled}
         onChange={onChange}
         onKeyDown={(e) => {
-          if (e.key === "Enter") onSearch?.();
-          if (e.key === "Escape" && onClear) onClear();
+          if (e.key === 'Enter') onSearch?.();
+
+          if (e.key === 'Escape' && onClear) onClear();
         }}
         type="text"
         placeholder={ph}
