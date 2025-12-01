@@ -1,10 +1,16 @@
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
+// Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import Input from '../../shared/components/Input';
+
+// Services
 import { createProduct } from '../services/create';
-import { useState } from 'react';
+
+// Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
 
 function CreateProductForm() {
@@ -12,6 +18,8 @@ function CreateProductForm() {
     register,
     formState: { errors },
     handleSubmit,
+    setError,
+    clearErrors,
   } = useForm({
     defaultValues: {
       sku: '',
@@ -26,22 +34,75 @@ function CreateProductForm() {
   const [errorBackendMessage, setErrorBackendMessage] = useState('');
   const navigate = useNavigate();
 
+  // Mapea códigos de error del backend a campos del formulario
+  const fieldByCode = {
+    3001: 'sku',
+    3002: 'cui',
+    3003: 'name',
+    3004: 'name',
+    3005: 'description',
+    3006: 'description',
+    3007: 'price',
+    3008: 'stock',
+    9102: 'sku',
+    9103: 'cui',
+  };
+
+  // Aplica errores de backend a campos; devuelve true si mapeó alguno
+  const setFieldErrorsFromBackend = (backendError) => {
+    let hasFieldMatch = false;
+
+    const apply = (code, messageFallback) => {
+      const field = fieldByCode[code];
+      const message = frontendErrorMessage[code] || messageFallback;
+      if (field && message) {
+        setError(field, { type: 'backend', message });
+        hasFieldMatch = true;
+      }
+    };
+
+    // Caso típico: errors: [{ code, message }, ...]
+    if (Array.isArray(backendError?.errors) && backendError.errors.length > 0) {
+      backendError.errors.forEach((err) => {
+        apply(err.code, err.message);
+      });
+    } else if (backendError?.code) {
+      // Caso sin array, solo code y detail
+      apply(backendError.code, backendError.detail || backendError.message);
+    }
+
+    return hasFieldMatch;
+  };
+
   const onValid = async (formData) => {
+
+    setErrorBackendMessage('');
+    clearErrors(); // por si venían errores previos
+
     try {
       await createProduct(formData);
 
       navigate('/admin/products');
     } catch (error) {
-      const backendError = error.backendError;
+       const backendError = error?.backendError || error; // por si tu wrapper ya setea backendError
 
       if (backendError) {
-        setErrorBackendMessage(
-          backendError.frontendErrorMessage
-          || backendError.backendMessage
-          || (backendError.code ? frontendErrorMessage[backendError.code] : null)
-          || 'Contactar a Soporte',
-        );
+        const matched = setFieldErrorsFromBackend(backendError);
 
+        // Si no se pudo mapear a campos, mostramos un mensaje general traducible
+        if (!matched) {
+          const translated =
+            (backendError.code && frontendErrorMessage[backendError.code]) || null;
+
+          setErrorBackendMessage(
+            backendError.frontendErrorMessage ||
+              translated ||
+              backendError.backendMessage ||
+              backendError.detail ||
+              backendError.message ||
+              'Contactar a Soporte'
+          );
+        }
         return;
       }
 
@@ -85,7 +146,10 @@ function CreateProductForm() {
         />
         <Input
           label='Descripción'
-          {...register('description')}
+          error={errors.description?.message}
+          {...register('description', {
+            required: 'Descripción es requerida',
+          })}
         />
         <Input
           label='Precio'
@@ -111,6 +175,7 @@ function CreateProductForm() {
         <div className='sm:text-end'>
           <Button type='submit' className='w-full sm:w-fit'>Crear Producto</Button>
         </div>
+        
         {errorBackendMessage && <span className='text-red-500'>{errorBackendMessage}</span>}
       </form>
     </Card>

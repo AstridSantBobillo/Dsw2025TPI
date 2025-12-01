@@ -1,13 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+//Hooks
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
+import useSearchState from '../../shared/hooks/useSearchState'; 
+import { useCart } from '../../cart/hooks/useCart';
+
+// Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import UserHeaderMenu from '../../shared/components/UserHeaderMenu';
 import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
+import NoticeModal from '../../shared/components/NoticeModal';
+import Pagination from '../../shared/components/Pagination';
+import ProductCard from '../../products/components/ProductCard';
+
+// Services
 import { getClientProducts } from '../../products/services/listUser';
-import { useCart } from '../../cart/hooks/useCart';
+
 
 function ListProductsUserPage() {
   const defaultProductImage =
@@ -16,7 +28,7 @@ function ListProductsUserPage() {
   const navigate = useNavigate();
 
   // PRODUCT STATE
-  const [searchTerm, setSearchTerm] = useState('');
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
   const [status] = useState('enabled');
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -36,6 +48,7 @@ function ListProductsUserPage() {
   // MODALS
   const [openLoginModal, setOpenLoginModal] = useState(false);
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
+  const { isOpen, isClosing, message, open, close } = useNoticeModal();
 
   // OPEN MODALS FROM EVENTS
   useEffect(() => {
@@ -51,6 +64,19 @@ function ListProductsUserPage() {
     };
   }, []);
 
+  const normalizeProductsResponse = (raw) => {
+  if (!raw) return { total: 0, productItems: [] };
+  if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
+
+  const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
+  const productItems =
+    Array.isArray(raw.productItems) ? raw.productItems :
+    Array.isArray(raw.items)        ? raw.items        :
+    Array.isArray(raw.results)      ? raw.results      : [];
+
+  return { total, productItems };
+};
+
   // FETCH PRODUCTS
   useEffect(() => {
     const fetchProducts = async () => {
@@ -65,8 +91,13 @@ function ListProductsUserPage() {
 
         if (error) throw error;
 
-        setTotal(data.total);
-        setProducts(data.productItems);
+        const norm = normalizeProductsResponse(data);
+        setTotal(norm.total);
+        setProducts(norm.productItems);
+        } catch (error) {
+        console.error(error);
+        setTotal(0);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -75,7 +106,18 @@ function ListProductsUserPage() {
     fetchProducts();
   }, [pageNumber, pageSize, searchTerm, status]);
 
-  const totalPages = Math.ceil(total / pageSize);
+  useEffect(() => {
+  if (total > 0) {
+    const tp = Math.max(1, Math.ceil(total / pageSize));
+    if (pageNumber > tp) setPageNumber(1);
+    if (pageNumber === 0) setPageNumber(1);
+  }
+  }, [total, pageSize, pageNumber]);
+
+  const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
+  const displayedPage = total === 0 ? 0 : pageNumber;
+  const displayedTotalPages = total === 0 ? 0 : realTotalPages;
+  const hasResults = !loading && total > 0;
 
   return (
     <div className="page-container">
@@ -90,9 +132,18 @@ function ListProductsUserPage() {
         onOpenRegister={() => setOpenRegisterModal(true)}
         onOpenMobileMenu={() => setOpenCartMenu(true)}
         search={{
-          value: searchTerm,
-          onChange: (e) => setSearchTerm(e.target.value),
+          value: inputValue,
+          onChange: (e) => {
+            const v = e.target.value;
+            setInputValue(v);
+
+            if (v.trim() === "") {
+              clear();
+              setPageNumber(1);
+            }
+          },
           onSearch: () => {
+            commit();
             setPageNumber(1);
           },
         }}
@@ -126,9 +177,17 @@ function ListProductsUserPage() {
         sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4
       "
       >
-        {loading ? (
-          <span>Buscando productos...</span>
-        ) : (
+       {loading && (
+          <span className="animate-pulse">Buscando productos...</span>
+        )}
+
+        {!loading && products.length === 0 && (
+          <Card className="p-4 text-center text-gray-600">
+            No hay productos para mostrar.
+          </Card>
+        )}
+
+        {hasResults &&
           products.map((product) => {
             const qty = quantities[product.sku] || 1;
             const cartItem = cart.find((item) => item.sku === product.sku);
@@ -136,144 +195,51 @@ function ListProductsUserPage() {
             const isMaxReached = qty + inCartQty > product.stockQuantity;
 
             return (
-              <Card key={product.sku} className="flex flex-col">
-                <img
-                  src={defaultProductImage}
-                  alt={product.name}
-                  className="w-full h-40 object-cover"
-                />
-
-                <div className="p-4 flex flex-col flex-1">
-                  <h2 className="text-lg font-semibold">{product.name}</h2>
-                  <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                    Stock: {product.stockQuantity} – ${product.currentUnitPrice}
-                  </p>
-
-                  {/* Mostrar si ya está en el carrito */}
-                  {(() => {
-                    const cartItem = cart.find((item) => item.sku === product.sku);
-
-                    if (!cartItem) return null;
-
-                    return (
-                      <p className="text-sm mt-1 text-green-600 font-medium">
-                          Ya tienes {cartItem.quantity} en el carrito.
-                      </p>
-                    );
-                  })()}
-
-                  <div className="flex items-center gap-4 mt-3 flex-1">
-                    <Button
-
-                      onClick={() =>
-                        setQuantities((prev) => ({
-                          ...prev,
-                          [product.sku]: Math.max(1, qty - 1),
-                        }))
-                      }
-                      disabled={qty <= 1}
-                      className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      ➖
-                    </Button>
-
-                    <span className="w-8 text-center text-lg font-semibold">
-                      {qty}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() =>
-                          setQuantities((prev) => ({
-                            ...prev,
-                            [product.sku]: Math.min(
-                              product.stockQuantity,
-                              qty + 1,
-                            ),
-                          }))
-                        }
-                        disabled={isMaxReached}
-                        className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        ➕
-                      </Button>
-
-                      {isMaxReached && (
-                        <span className="text-sm text-red-600 font-medium">
-                          No hay stock
-                        </span>
-                      )}
-                    </div>
-
-                    <Button
-                      onClick={() => {
-                        addToCart(product, qty);
-                        setQuantities((prev) => ({
-                          ...prev,
-                          [product.sku]: 1,
-                        }));
-                      }}
-                      disabled={isMaxReached}
-                      className="ml-auto text-sm px-4 py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                    Agregar
-                    </Button>
-
-                  </div>
-                </div>
-              </Card>
-            );
+            <Card key={product.sku} className="flex flex-col">
+              <ProductCard
+                product={product}
+                quantity={qty}
+                inCartQty={inCartQty}
+                imageSrc={defaultProductImage}
+                onChangeQty={(q) =>
+                  setQuantities((prev) => ({ ...prev, [product.sku]: q }))
+                }
+                onAdd={() => {
+                  addToCart(product, qty);
+                  setQuantities((prev) => ({ ...prev, [product.sku]: 1 }));
+                  open(`Se agregó "${product.name}" al carrito.`);
+                }}
+              />
+            </Card>
+          );
           })
-        )}
+    }
       </div>
 
       {/* PAGINATION */}
-      <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-        {/* BOTONES DE NAVEGACIÓN */}
-        <div className="flex items-center gap-2">
-          <button
-            disabled={pageNumber === 1}
-            onClick={() => setPageNumber(pageNumber - 1)}
-            className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:px-5 sm:py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Atras
-          </button>
-
-          <span className="px-4 py-2 text-sm sm:text-base font-semibold border border-gray-200 rounded">
-            {pageNumber} / {totalPages}
-          </span>
-
-          <button
-            disabled={pageNumber === totalPages}
-            onClick={() => setPageNumber(pageNumber + 1)}
-            className="bg-gray-200 disabled:bg-gray-100 text-sm px-4 py-2 sm:px-5 sm:py-2 rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Siguiente
-          </button>
-        </div>
-
-        {/* SELECTOR DE TAMAÑO */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="pageSize" className="text-sm font-medium text-gray-600">
-            Por página:
-          </label>
-          <select
-            id="pageSize"
-            value={pageSize}
-            onChange={(evt) => {
+      <Card className="mt-6 overflow-visible">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Pagination
+            page={displayedPage}
+            totalPages={displayedTotalPages}
+            onChangePage={setPageNumber}
+            pageSize={pageSize}
+            onChangePageSize={(size) => {
               setPageNumber(1);
-              setPageSize(Number(evt.target.value));
+              setPageSize(size);
             }}
-            className="border border-gray-200 rounded px-3 py-2 text-sm font-medium appearance-none bg-white"
-            style={{ direction: 'rtl' }}
-          >
-            <option value="2">2</option>
-            <option value="10">10</option>
-            <option value="15">15</option>
-            <option value="20">20</option>
-          </select>
+            sizes={[2, 10, 15, 20]}
+            showPageSize
+            compact
+            className="flex flex-wrap gap-2 justify-center sm:justify-start"
+          />
+
+          <div className="text-sm text-gray-600">
+            Total: <strong>{total}</strong>
+          </div>
         </div>
-      </div>
+      </Card>
+
 
       {/* MODALS */}
       <LoginModal
@@ -285,6 +251,9 @@ function ListProductsUserPage() {
         isOpen={openRegisterModal}
         onClose={() => setOpenRegisterModal(false)}
       />
+
+      <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
+
     </div>
   );
 }

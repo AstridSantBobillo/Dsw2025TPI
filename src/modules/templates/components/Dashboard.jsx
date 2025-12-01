@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+
+// Hooks
 import useAuth from '../../auth/hook/useAuth';
+
+// Components
 import Button from '../../shared/components/Button';
 
 function Dashboard() {

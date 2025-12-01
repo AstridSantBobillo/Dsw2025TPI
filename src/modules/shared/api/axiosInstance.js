@@ -1,4 +1,6 @@
 import axios from 'axios';
+
+// Helpers
 import { mapBackendError } from '../helpers/mapBackendError';
 
 const instance = axios.create({

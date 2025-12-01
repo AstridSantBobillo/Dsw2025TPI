@@ -1,4 +1,7 @@
+// Components
 import Button from './Button';
+
+// Hooks
 import useAuth from '../../auth/hook/useAuth';
 
 export default function MobileSideMenu({

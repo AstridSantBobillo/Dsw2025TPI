@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Hooks
@@ -6,6 +6,8 @@ import useAuth from '../../auth/hook/useAuth';
 import { useCart } from '../hooks/useCart';
 import { useDeleteQuantity } from '../../shared/hooks/useDeleteQuantity';
 import { useToggleMap } from '../../shared/hooks/useToggleMap';
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
+import useSearchState from '../../shared/hooks/useSearchState';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -14,6 +16,8 @@ import UserHeaderMenu from '../../shared/components/UserHeaderMenu';
 import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
+import NoticeModal from '../../shared/components/NoticeModal';
+import CartCard from '../components/CartCard';
 
 // Services
 import { createOrder } from '../../orders/services/createOrder';
@@ -22,8 +26,9 @@ function CartPage() {
   const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
   const { user } = useAuth();
-
-  const { deleteQuantities, get, increment, decrement, reset } = useDeleteQuantity();
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
+  const { get, increment, decrement, reset } = useDeleteQuantity();
+  const { isOpen, isClosing, message, open : openNotification, close: closeNotification } = useNoticeModal();
 
   const {
     state: modals,
@@ -36,11 +41,9 @@ function CartPage() {
   });
 
   const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
-  const totalAmount = cart.reduce((acc, p) => {
-    const delQty = get(p.sku);
-    const remaining = p.quantity - delQty;
-    return acc + remaining * p.currentUnitPrice;
-  }, 0);
+
+  const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
+
 
   useEffect(() => {
     const openLogin = () => open('loginModal');
@@ -75,14 +78,13 @@ function CartPage() {
       };
 
       const { data, error } = await createOrder(orderData);
-
       if (error) throw error;
 
       clearCart();
       navigate('/');
     } catch (err) {
       console.error(err);
-      alert('Error al procesar la orden.');
+      openNotification('Error al procesar la orden.'); 
     }
   };
 
@@ -113,12 +115,29 @@ function CartPage() {
     );
   }
 
+  const filteredCart = cart.filter((item) =>
+  item.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
   return (
     <div className="page-container pb-40 sm:pb-0">
       {/* Header */}
       <UserHeaderMenu
         title="Carrito"
-        search={{ value: '', onChange: () => {}, onSearch: () => {} }}
+        search={{
+            value: inputValue,
+            onChange: (e) => {
+              const v = e.target.value;
+              setInputValue(v);
+
+              if (v.trim() === "") {
+                clear("");
+              }
+            },
+            onSearch: () => {
+              commit();
+            },
+          }}
         onGoProducts={() => navigate('/')}
         onGoHome={() => navigate('/')}
         onGoCart={null}
@@ -153,76 +172,46 @@ function CartPage() {
       <div className="mt-4 flex flex-col sm:flex-row gap-[3px] sm:gap-4">
         {/* Cart items */}
         <div className="flex-1 flex flex-col gap-[3px] sm:gap-4">
-          {cart.map((item, index) => {
-            const delQty = get(item.sku);
-            const remaining = item.quantity - delQty;
+           {filteredCart.length === 0 ? (
+            <Card className="p-4 text-center text-gray-600">
+              No hay productos en el carrito que coincidan con la búsqueda.
+            </Card>
+          ) : (
+            filteredCart.map((item, index) => {
+              const delQty = get(item.sku);
 
-            return (
-              <Card key={item.sku} className="p-4 animate-slideUp" style={{ animationDelay: `${index * 50}ms` }}>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex-1">
-                    <h2 className="text-base font-semibold">{item.name}</h2>
-                    <p className="text-gray-600 text-xs mt-1">
-                      Cantidad de productos: <strong>{item.quantity}</strong>
-                    </p>
-                    <p className="text-gray-600 text-xs mt-1">
-                      Sub Total: <strong>${(remaining * item.currentUnitPrice).toFixed(2)}</strong>
-                    </p>
-                  </div>
+              return (
+               // dentro del map(filteredCart)
+            <CartCard
+              key={item.sku}
+              item={item}
+              delQty={get(item.sku)}                          // ← arranca en 1
+              onDecrease={() => decrement(item.sku)}         // no baja de 1
+              onIncrease={() => increment(item.sku, item.quantity)} // tope = quantity en carrito
+              onDelete={(qtyToDelete) => {                 // ⬅️ ahora recibe la cantidad
+                const remaining = item.quantity - qtyToDelete;
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => decrement(item.sku)}
-                      disabled={delQty <= 1}
-                      className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      ➖
-                    </Button>
+                if (remaining <= 0) {
+                  removeFromCart(item.sku);
+                } else {
+                  updateQuantity(item.sku, remaining);
+                }
 
-                    <span className="w-6 text-center text-sm font-semibold">{delQty}</span>
+                reset(item.sku, 1); // volver a 1 para la próxima
+                openNotification(`Se eliminó "${item.name}" del carrito.`);
+              }}
+            />
+              );
+            })
+          )}
 
-                    <Button
-                      onClick={() => increment(item.sku, item.quantity)}
-                      disabled={delQty >= item.quantity}
-                      className="px-2 py-1 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      ➕
-                    </Button>
-
-                    <Button
-                      className="ml-2 text-xs px-3 py-1 font-semibold"
-                      onClick={() => {
-                        const newQty = item.quantity - delQty;
-                        
-                        if (newQty <= 0) {
-                          removeFromCart(item.sku);
-                        } else {
-                          updateQuantity(item.sku, newQty);
-                        }
-
-                        reset(item.sku);
-                      }}
-                    >
-                      Borrar
-                    </Button>
-                  </div>
-                </div>
-
-                {delQty >= item.quantity && (
-                  <p className="text-red-600 text-xs font-medium mt-2">
-                    Si borra, este producto se eliminará del carrito
-                  </p>
-                )}
-              </Card>
-            );
-          })}
         </div>
 
         {/* Order summary - MOBILE FIXED BOTTOM */}
         <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3">
           <div className="page-container">
             <div className="text-sm mb-3">
-              <p className="text-gray-600">Cantidad de en total: <strong>{totalItems}</strong></p>
+              <p className="text-gray-600">Cantidad de productos en total: <strong>{totalItems}</strong></p>
               <p className="text-lg font-semibold">Total a pagar: <strong>${totalAmount.toFixed(2)}</strong></p>
             </div>
             <Button
@@ -263,6 +252,9 @@ function CartPage() {
         isOpen={modals.registerModal}
         onClose={() => close('registerModal')}
       />
+
+      <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
+      
     </div>
   );
 }

@@ -1,5 +1,8 @@
+// Components
 import Button from './Button';
 import SearchBar from './SearchBar';
+
+// Hooks
 import useAuth from '../../auth/hook/useAuth';
 
 export default function UserHeaderMenu({
@@ -12,7 +15,7 @@ export default function UserHeaderMenu({
   onOpenMobileMenu,
 }) {
   const { isAuthenticated, user, singout } = useAuth();
-  const displayName = user?.name || 'Usuario';
+  const displayName = user?.username || 'Usuario';
 
   return (
     <div className="mb-3">

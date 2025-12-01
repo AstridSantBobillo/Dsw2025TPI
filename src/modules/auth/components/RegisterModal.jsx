@@ -1,4 +1,4 @@
-// src/auth/modals/RegisterModal.jsx
+//Components
 import Modal from '../../shared/components/Modal';
 import RegisterForm from '../../auth/components/RegisterForm';
 
@@ -8,7 +8,7 @@ export default function RegisterModal({ isOpen, onClose }) {
       <h2 className="text-2xl font-bold mb-4 text-center">Crear cuenta</h2>
 
       <RegisterForm
-        fixedRole="Client"  // ← siempre cliente
+        fixedRole="Client"
         onSuccess={onClose}
       />
 

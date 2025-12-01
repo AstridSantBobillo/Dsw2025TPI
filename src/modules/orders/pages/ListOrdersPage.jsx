@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+//Hooks
+import useSearchState from '../../shared/hooks/useSearchState';
+
+// Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
-import { getOrders } from '../services/listServices'; // nuevo servicio
+import SearchBar from '../../shared/components/SearchBar';   
+import Pagination from '../../shared/components/Pagination'; 
+import OrderCard from '../../orders/components/OrderCard';
+
+// Services
+import { getOrders } from '../services/listServices';
 
 const orderStatus = {
   ALL: '',
@@ -17,7 +27,7 @@ const orderStatus = {
 function ListOrdersPage() {
   const navigate = useNavigate();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
   const [status, setStatus] = useState(orderStatus.ALL);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -26,26 +36,64 @@ function ListOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
 
+
+  const normalizeOrdersResponse = (raw) => {
+    // 204 o null/undefined
+    if (!raw) return { totalCount: 0, items: [] };
+
+    // A veces podrían devolver array directo
+    if (Array.isArray(raw)) return { totalCount: raw.length, items: raw };
+
+    // Objeto con distintas posibles keys
+    const totalCount = Number(
+      raw.totalCount ?? raw.total ?? raw.count ?? 0
+    ) || 0;
+
+    const items = Array.isArray(raw.items)
+      ? raw.items
+      : Array.isArray(raw.results)
+      ? raw.results
+      : [];
+
+    return { totalCount, items };
+  };
+
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
       if (error) throw error;
 
-      setTotal(data.totalCount);      
-    setOrders(data.items ?? []);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const norm = normalizeOrdersResponse(data);
+      setTotal(norm.totalCount);
+      setOrders(norm.items);
+      } catch (error) {
+        console.error(error);
+        setTotal(0);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     fetchOrders();
-  }, [status, pageSize, pageNumber]);
+  }, [searchTerm, status, pageSize, pageNumber]);
 
-  const totalPages = Math.ceil(total / pageSize);
+  const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
+  const displayedPage = total === 0 ? 0 : pageNumber;
+  const displayedTotalPages = total === 0 ? 0 : realTotalPages;
+
+  // Si hay resultados y quedamos fuera de rango, volver a página 1
+  useEffect(() => {
+    if (total > 0) {
+      const tp = Math.max(1, Math.ceil(total / pageSize));
+      if (pageNumber > tp || pageNumber === 0) setPageNumber(1);
+    }
+  }, [total, pageSize, pageNumber]);
+
+  const hasResults = !loading && total > 0;
 
   return (
     <div>
@@ -54,39 +102,40 @@ function ListOrdersPage() {
           <h1 className="text-3xl">Órdenes</h1>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex items-center gap-3">
-            <input
-              value={searchTerm}
-              onChange={(evt) => setSearchTerm(evt.target.value)}
-              type="text"
-              placeholder="Buscar"
-              className="text-[1.3rem] w-full"
-            />
-           <Button onClick={fetchOrders} className="h-11 w-11 flex items-center justify-center p-0">
-             <svg 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6"
-              >
-                <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-                <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-                <g id="SVGRepo_iconCarrier">
-                  <path 
-                    d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" 
-                    stroke="#000000" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  />
-                </g>
-              </svg>
-            </Button>
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+          {/*  SearchBar estilo admin + botón limpiar */}
+          <SearchBar
+            variant="admin"
+            value={inputValue}
+            onChange={(e) => {
+              const v = e.target.value;
+              setInputValue(v);
+              if (v.trim() === '') {
+                clear();
+                setPageNumber(1);
+              }
+            }}
+            onSearch={() => {
+              commit();
+              setPageNumber(1);
+            }}
+            onClear={() => {
+              clear();
+              setPageNumber(1);
+            }}
+            placeholder="Buscar (ID, cliente, estado)…"
+            className="sm:flex-1"
+          />
 
-          </div>
-
-          <select onChange={(evt) => setStatus(evt.target.value)} className="text-[1.3rem]">
+          {/* Filtro de estado */}
+          <select
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPageNumber(1);
+            }}
+            className="text-[1.1rem] border rounded px-2 py-2"
+          >
             <option value={orderStatus.ALL}>Todos</option>
             <option value={orderStatus.PENDING}>Pendientes</option>
             <option value={orderStatus.PROCESSING}>Procesadas</option>
@@ -99,50 +148,50 @@ function ListOrdersPage() {
       </Card>
 
       <div className="mt-4 flex flex-col gap-4">
-        {loading ? (
-          <span className="animate-pulse">Cargando órdenes...</span>
-        ) : (
-          orders.map((order, index) => (
-           <Card key={order.id} className="animate-slideUp" style={{ animationDelay: `${index * 50}ms` }}>
-            <div className="flex justify-between items-center w-full">
-              <div>
-                <h1>#{order.id} | {order.customerId}</h1>
-                <p>Estado: {order.status}</p>
-              </div>
+         {loading && <span className="animate-pulse">Cargando órdenes...</span>}
 
-              <Button 
-                className="hidden sm:flex h-11 w-11 items-center justify-center cursor-default"
-              >
-                Ver
-              </Button>
-            </div>
+        {!loading && total === 0 && (
+          <Card className="p-4 text-center text-gray-600">
+            No hay órdenes para mostrar.
           </Card>
-          ))
         )}
+
+        {hasResults &&
+          orders.map((order, index) => (
+          <div key={order.id} style={{ animationDelay: `${index * 50}ms` }}>
+            <OrderCard
+              order={order}
+              onView={() => navigate(`/admin/orders/${order.id}`)}
+            />
+          </div>
+        ))
+      }
       </div>
 
-      <div className="flex justify-center items-center mt-3">
-        <button disabled={pageNumber === 1} onClick={() => setPageNumber(pageNumber - 1)}>
-          Atrás
-        </button>
-        <span>{pageNumber} / {totalPages}</span>
-        <button disabled={pageNumber === totalPages} onClick={() => setPageNumber(pageNumber + 1)}>
-          Siguiente
-        </button>
+      {/* PAGINACIÓN */}
+      <Card className="mt-6 overflow-visible">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Pagination
+            page={displayedPage}
+            totalPages={displayedTotalPages}
+            onChangePage={setPageNumber}
+            pageSize={pageSize}
+            onChangePageSize={(size) => {
+              setPageNumber(1);
+              setPageSize(size);
+            }}
+            sizes={[2, 10, 15, 20]}
+            showPageSize
+            compact
+            className="flex flex-wrap gap-2 justify-center sm:justify-start"
+          />
 
-        <select
-          value={pageSize}
-          onChange={(evt) => {
-            setPageNumber(1);
-            setPageSize(Number(evt.target.value));
-          }}
-        >
-          <option value="2">2</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-        </select>
-      </div>
+          <div className="text-sm text-gray-600">
+            Total: <strong>{total}</strong>
+          </div>
+        </div>
+      </Card>
+
     </div>
   );
 }

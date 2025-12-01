@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Hooks
+import useSearchState from '../../shared/hooks/useSearchState';
+
+// Components
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
+import SearchBar from '../../shared/components/SearchBar';    
+import Pagination from '../../shared/components/Pagination'; 
+import AdminProductCard from '../../products/components/AdminProductCard';
+
+// Services
 import { getProducts } from '../services/list';
 
 const productStatus = {
@@ -13,7 +23,8 @@ const productStatus = {
 function ListProductsPage() {
   const navigate = useNavigate();
 
-  const [ searchTerm, setSearchTerm ] = useState('');
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState("");
+
   const [ status, setStatus ] = useState(productStatus.ALL);
   const [ pageNumber, setPageNumber ] = useState(1);
   const [ pageSize, setPageSize ] = useState(10);
@@ -23,18 +34,33 @@ function ListProductsPage() {
 
   const [loading, setLoading] = useState(false);
 
+  const normalizeProductsResponse = (raw) => {
+  if (!raw) return { total: 0, productItems: [] };            // 204 / null
+  if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
+
+  const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
+  const productItems =
+    Array.isArray(raw.productItems) ? raw.productItems :
+    Array.isArray(raw.items)        ? raw.items        :
+    Array.isArray(raw.results)      ? raw.results      : [];
+
+  return { total, productItems };
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const { data, error } = await getProducts(searchTerm, status, pageNumber, pageSize);
-
         if (error) throw error;
 
-        setTotal(data.total);
-        setProducts(data.productItems);
+        const norm = normalizeProductsResponse(data);
+        setTotal(norm.total);
+        setProducts(norm.productItems);
       } catch (error) {
         console.error(error);
+        setTotal(0);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -43,15 +69,14 @@ function ListProductsPage() {
     fetchProducts();
   }, [searchTerm, status, pageNumber, pageSize]);
 
-  const totalPages = Math.ceil(total / pageSize);
-
-  const handleSearch = async () => {
-    setPageNumber(1);
-  };
+  const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
+  const displayedPage = total === 0 ? 0 : pageNumber;
+  const displayedTotalPages = total === 0 ? 0 : realTotalPages;
+  const hasResults = !loading && total > 0;
 
   return (
     <div>
-      <Card>
+      <Card className="overflow-visible"> 
         <div
           className='flex justify-between items-center mb-3'
         >
@@ -74,16 +99,39 @@ function ListProductsPage() {
           </Button>
         </div>
 
-        <div className='flex flex-col sm:flex-row gap-4'>
-          <div
-            className='flex items-center gap-3'
+         <div className='flex flex-col sm:flex-row gap-4 sm:items-center'>
+          {/* SearchBar admin */}
+          <SearchBar
+            variant="admin"
+            value={inputValue}
+            onChange={(e) => {
+              const v = e.target.value;
+              setInputValue(v);
+              if (v.trim() === "") {
+                clear();
+                setPageNumber(1);
+              }
+            }}
+            onSearch={() => {
+              commit();
+              setPageNumber(1);
+            }}
+            onClear={() => {
+              clear();
+              setPageNumber(1);
+            }}
+            placeholder="Buscar (SKU, nombre)…"
+            className="sm:flex-1"
+          />
+
+          <select
+            value={status}
+            onChange={(evt) => {
+              setStatus(evt.target.value);
+              setPageNumber(1);
+            }}
+            className='text-[1.1rem] border rounded px-2 py-2'
           >
-            <input value={searchTerm} onChange={(evt) => setSearchTerm(evt.target.value)} type="text" placeholder='Buscar' className='text-[1.3rem] w-full' />
-            <Button className='h-11 w-11' onClick={handleSearch}>
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path> </g></svg>
-            </Button>
-          </div>
-          <select onChange={evt => setStatus(evt.target.value)} className='text-[1.3rem]'>
             <option value={productStatus.ALL}>Todos</option>
             <option value={productStatus.ENABLED}>Habilitados</option>
             <option value={productStatus.DISABLED}>Inhabilitados</option>
@@ -91,59 +139,52 @@ function ListProductsPage() {
         </div>
       </Card>
 
-      <div className='mt-4 flex flex-col gap-4'>
-        {
-          loading
-            ? <span className='animate-pulse'>Buscando datos...</span>
-            : products.map((product, index) => (
-              <Card key={product.sku} className={`animate-slideUp`} style={{ animationDelay: `${index * 50}ms` }}>
-                <div className="flex justify-between items-center w-full">
-                  <div>
-                    <h1>{product.sku} - {product.name}</h1>
-                    <p className='text-base'>Stock: {product.stockQuantity} - ${product.currentUnitPrice} - {product.isActive ? 'Activado' : 'Desactivado'}</p>
-                  </div>
+      <div className="mt-4 flex flex-col gap-4">
+        {loading && (
+          <span className="animate-pulse">Buscando productos...</span>
+        )}
 
-                  <Button
-                    className="hidden sm:flex h-11 w-11 items-center justify-center cursor-default">
-                Ver
-                  </Button>
-                </div>
-              </Card>
-            ))
+        {!loading && products.length === 0 && (
+          <Card className="p-4 text-center text-gray-600">
+            No hay productos para mostrar.
+          </Card>
+        )}
+
+        {hasResults &&
+          products.map((product, index) => (
+            <AdminProductCard
+              key={product.sku}
+              product={product}
+            />
+          ))
         }
       </div>
 
-      <div className='flex justify-center items-center mt-3'>
-        <button
-          disabled={pageNumber === 1}
-          onClick={() => setPageNumber(pageNumber - 1)}
-          className='bg-gray-200 disabled:bg-gray-100'
-        >
-          Atras
-        </button>
-        <span>{pageNumber} / {totalPages}</span>
-        <button
-          disabled={ pageNumber === totalPages }
-          onClick={() => setPageNumber(pageNumber + 1)}
-          className='bg-gray-200 disabled:bg-gray-100'
-        >
-          Siguiente
-        </button>
 
-        <select
-          value={pageSize}
-          onChange={evt => {
-            setPageNumber(1);
-            setPageSize(Number(evt.target.value));
-          }}
-          className='ml-3'
-        >
-          <option value="2">2</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-        </select>
-      </div>
+       {/* PAGINATION  */}
+      <Card className="mt-6 overflow-visible">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <Pagination
+            page={displayedPage}
+            totalPages={displayedTotalPages}
+            onChangePage={setPageNumber}
+            pageSize={pageSize}
+            onChangePageSize={(size) => {
+              setPageNumber(1);
+              setPageSize(size);
+            }}
+            sizes={[2, 10, 15, 20]}
+            showPageSize
+            compact
+            className="flex flex-wrap gap-2 justify-center sm:justify-start" 
+          />
+
+          <div className="text-sm text-gray-600">
+            Total: <strong>{total}</strong>
+          </div>
+        </div>
+      </Card>
+
     </div>
 
   );
