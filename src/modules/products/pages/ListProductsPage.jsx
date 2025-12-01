@@ -34,6 +34,19 @@ function ListProductsPage() {
 
   const [loading, setLoading] = useState(false);
 
+  const normalizeProductsResponse = (raw) => {
+  if (!raw) return { total: 0, productItems: [] };            // 204 / null
+  if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
+
+  const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
+  const productItems =
+    Array.isArray(raw.productItems) ? raw.productItems :
+    Array.isArray(raw.items)        ? raw.items        :
+    Array.isArray(raw.results)      ? raw.results      : [];
+
+  return { total, productItems };
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -41,10 +54,13 @@ function ListProductsPage() {
         const { data, error } = await getProducts(searchTerm, status, pageNumber, pageSize);
         if (error) throw error;
 
-        setTotal(data.total);
-        setProducts(data.productItems);
+        const norm = normalizeProductsResponse(data);
+        setTotal(norm.total);
+        setProducts(norm.productItems);
       } catch (error) {
         console.error(error);
+        setTotal(0);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -53,7 +69,10 @@ function ListProductsPage() {
     fetchProducts();
   }, [searchTerm, status, pageNumber, pageSize]);
 
-  const totalPages = Math.ceil(total / pageSize);
+  const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
+  const displayedPage = total === 0 ? 0 : pageNumber;
+  const displayedTotalPages = total === 0 ? 0 : realTotalPages;
+  const hasResults = !loading && total > 0;
 
   return (
     <div>
@@ -81,7 +100,7 @@ function ListProductsPage() {
         </div>
 
          <div className='flex flex-col sm:flex-row gap-4 sm:items-center'>
-          {/* 🔎 SearchBar admin */}
+          {/* SearchBar admin */}
           <SearchBar
             variant="admin"
             value={inputValue}
@@ -120,27 +139,34 @@ function ListProductsPage() {
         </div>
       </Card>
 
-      <div className='mt-4 flex flex-col gap-4'>
-        {
-          loading
-            ? <span className='animate-pulse'>Buscando datos...</span>
-            : products.map((product, index) => (
+      <div className="mt-4 flex flex-col gap-4">
+        {loading && (
+          <span className="animate-pulse">Buscando productos...</span>
+        )}
+
+        {!loading && products.length === 0 && (
+          <Card className="p-4 text-center text-gray-600">
+            No hay productos para mostrar.
+          </Card>
+        )}
+
+        {hasResults &&
+          products.map((product, index) => (
             <AdminProductCard
               key={product.sku}
               product={product}
-              onView={() => {/* navega a detalle cuando tengamos */}}
-              style={{ animationDelay: `${index * 50}ms` }}
             />
           ))
         }
       </div>
 
+
        {/* PAGINATION  */}
       <Card className="mt-6 overflow-visible">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <Pagination
-            page={pageNumber}
-            totalPages={Math.max(1, Math.ceil(total / pageSize))}
+            page={displayedPage}
+            totalPages={displayedTotalPages}
             onChangePage={setPageNumber}
             pageSize={pageSize}
             onChangePageSize={(size) => {
@@ -150,7 +176,7 @@ function ListProductsPage() {
             sizes={[2, 10, 15, 20]}
             showPageSize
             compact
-            className="flex flex-wrap gap-2 justify-center sm:justify-start" // 👈 wrap
+            className="flex flex-wrap gap-2 justify-center sm:justify-start" 
           />
 
           <div className="text-sm text-gray-600">

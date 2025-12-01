@@ -63,6 +63,19 @@ function ListProductsUserPage() {
     };
   }, []);
 
+  const normalizeProductsResponse = (raw) => {
+  if (!raw) return { total: 0, productItems: [] };
+  if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
+
+  const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
+  const productItems =
+    Array.isArray(raw.productItems) ? raw.productItems :
+    Array.isArray(raw.items)        ? raw.items        :
+    Array.isArray(raw.results)      ? raw.results      : [];
+
+  return { total, productItems };
+};
+
   // FETCH PRODUCTS
   useEffect(() => {
     const fetchProducts = async () => {
@@ -77,8 +90,13 @@ function ListProductsUserPage() {
 
         if (error) throw error;
 
-        setTotal(data.total);
-        setProducts(data.productItems);
+        const norm = normalizeProductsResponse(data);
+        setTotal(norm.total);
+        setProducts(norm.productItems);
+        } catch (error) {
+        console.error(error);
+        setTotal(0);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -87,7 +105,18 @@ function ListProductsUserPage() {
     fetchProducts();
   }, [pageNumber, pageSize, searchTerm, status]);
 
-  const totalPages = Math.ceil(total / pageSize);
+  useEffect(() => {
+  if (total > 0) {
+    const tp = Math.max(1, Math.ceil(total / pageSize));
+    if (pageNumber > tp) setPageNumber(1);
+    if (pageNumber === 0) setPageNumber(1);
+  }
+  }, [total, pageSize, pageNumber]);
+
+  const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
+  const displayedPage = total === 0 ? 0 : pageNumber;
+  const displayedTotalPages = total === 0 ? 0 : realTotalPages;
+  const hasResults = !loading && total > 0;
 
   return (
     <div className="page-container">
@@ -147,9 +176,17 @@ function ListProductsUserPage() {
         sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-4
       "
       >
-        {loading ? (
-          <span>Buscando productos...</span>
-        ) : (
+       {loading && (
+          <span className="animate-pulse">Buscando productos...</span>
+        )}
+
+        {!loading && products.length === 0 && (
+          <Card className="p-4 text-center text-gray-600">
+            No hay productos para mostrar.
+          </Card>
+        )}
+
+        {hasResults &&
           products.map((product) => {
             const qty = quantities[product.sku] || 1;
             const cartItem = cart.find((item) => item.sku === product.sku);
@@ -175,15 +212,15 @@ function ListProductsUserPage() {
             </Card>
           );
           })
-        )}
+    }
       </div>
 
       {/* PAGINATION */}
       <Card className="mt-6 overflow-visible">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <Pagination
-            page={pageNumber}
-            totalPages={Math.max(1, Math.ceil(total / pageSize))}
+            page={displayedPage}
+            totalPages={displayedTotalPages}
             onChangePage={setPageNumber}
             pageSize={pageSize}
             onChangePageSize={(size) => {
@@ -193,7 +230,7 @@ function ListProductsUserPage() {
             sizes={[2, 10, 15, 20]}
             showPageSize
             compact
-            className="flex flex-wrap gap-2 justify-center sm:justify-start" // 👈 wrap
+            className="flex flex-wrap gap-2 justify-center sm:justify-start"
           />
 
           <div className="text-sm text-gray-600">
