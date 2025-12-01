@@ -14,6 +14,7 @@ import LoginModal from '../../auth/components/LoginModal';
 import RegisterModal from '../../auth/components/RegisterModal';
 import NoticeModal from '../../shared/components/NoticeModal';
 import Pagination from '../../shared/components/Pagination';
+import ProductCard from '../../products/components/ProductCard';
 
 // Services
 import { getClientProducts } from '../../products/services/listUser';
@@ -156,88 +157,23 @@ function ListProductsUserPage() {
             const isMaxReached = qty + inCartQty > product.stockQuantity;
 
             return (
-              <Card key={product.sku} className="flex flex-col">
-                <img
-                  src={defaultProductImage}
-                  alt={product.name}
-                  className="w-full h-40 object-cover"
-                />
-
-                <div className="p-4 flex flex-col flex-1">
-                  <h2 className="text-lg font-semibold">{product.name}</h2>
-                  <p className="text-gray-600 mt-1 text-sm sm:text-base">
-                    Stock: {product.stockQuantity} – ${product.currentUnitPrice}
-                  </p>
-
-                  {/* Mostrar si ya está en el carrito */}
-                  {cartItem && (
-                    <p className="text-sm mt-1 text-green-600 font-medium">
-                      Ya tienes {cartItem.quantity} en el carrito.
-                    </p>
-                  )}
-
-                  <div className="flex items-center gap-4 mt-3 flex-1">
-                    <Button
-
-                      onClick={() =>
-                        setQuantities((prev) => ({
-                          ...prev,
-                          [product.sku]: Math.max(1, qty - 1),
-                        }))
-                      }
-                      disabled={qty <= 1}
-                      className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      ➖
-                    </Button>
-
-                    <span className="w-8 text-center text-lg font-semibold">
-                      {qty}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() =>
-                          setQuantities((prev) => ({
-                            ...prev,
-                            [product.sku]: Math.min(
-                              product.stockQuantity,
-                              qty + 1,
-                            ),
-                          }))
-                        }
-                        disabled={isMaxReached}
-                        className="px-2 py-1 text-sm sm:px-3 sm:py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        ➕
-                      </Button>
-
-                      {isMaxReached && (
-                        <span className="text-sm text-red-600 font-medium">
-                          No hay stock
-                        </span>
-                      )}
-                    </div>
-
-                    <Button
-                      onClick={() => {
-                        addToCart(product, qty);
-                        setQuantities((prev) => ({
-                          ...prev,
-                          [product.sku]: 1,
-                        }));
-                         open(`Se agregó "${product.name}" al carrito.`);
-                      }}
-                      disabled={isMaxReached}
-                      className="ml-auto text-sm px-4 py-2 sm:text-base disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                    Agregar
-                    </Button>
-
-                  </div>
-                </div>
-              </Card>
-            );
+            <Card key={product.sku} className="flex flex-col">
+              <ProductCard
+                product={product}
+                quantity={qty}
+                inCartQty={inCartQty}
+                imageSrc={defaultProductImage}
+                onChangeQty={(q) =>
+                  setQuantities((prev) => ({ ...prev, [product.sku]: q }))
+                }
+                onAdd={() => {
+                  addToCart(product, qty);
+                  setQuantities((prev) => ({ ...prev, [product.sku]: 1 }));
+                  open(`Se agregó "${product.name}" al carrito.`);
+                }}
+              />
+            </Card>
+          );
           })
         )}
       </div>

@@ -9,6 +9,7 @@ import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import SearchBar from '../../shared/components/SearchBar';    
 import Pagination from '../../shared/components/Pagination'; 
+import AdminProductCard from '../../products/components/AdminProductCard';
 
 // Services
 import { getProducts } from '../services/list';
@@ -124,20 +125,13 @@ function ListProductsPage() {
           loading
             ? <span className='animate-pulse'>Buscando datos...</span>
             : products.map((product, index) => (
-              <Card key={product.sku} className={`animate-slideUp`} style={{ animationDelay: `${index * 50}ms` }}>
-                <div className="flex justify-between items-center w-full">
-                  <div>
-                    <h1>{product.sku} - {product.name}</h1>
-                    <p className='text-base'>Stock: {product.stockQuantity} - ${product.currentUnitPrice} - {product.isActive ? 'Activado' : 'Desactivado'}</p>
-                  </div>
-
-                  <Button
-                    className="hidden sm:flex h-11 w-11 items-center justify-center cursor-default">
-                Ver
-                  </Button>
-                </div>
-              </Card>
-            ))
+            <AdminProductCard
+              key={product.sku}
+              product={product}
+              onView={() => {/* navega a detalle cuando tengamos */}}
+              style={{ animationDelay: `${index * 50}ms` }}
+            />
+          ))
         }
       </div>
 

@@ -9,6 +9,7 @@ import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import SearchBar from '../../shared/components/SearchBar';   
 import Pagination from '../../shared/components/Pagination'; 
+import OrderCard from '../../orders/components/OrderCard';
 
 // Services
 import { getOrders } from '../services/listServices';
@@ -35,16 +36,42 @@ function ListOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
 
+
+  const normalizeOrdersResponse = (raw) => {
+    // 204 o null/undefined
+    if (!raw) return { totalCount: 0, items: [] };
+
+    // A veces podrían devolver array directo
+    if (Array.isArray(raw)) return { totalCount: raw.length, items: raw };
+
+    // Objeto con distintas posibles keys
+    const totalCount = Number(
+      raw.totalCount ?? raw.total ?? raw.count ?? 0
+    ) || 0;
+
+    const items = Array.isArray(raw.items)
+      ? raw.items
+      : Array.isArray(raw.results)
+      ? raw.results
+      : [];
+
+    return { totalCount, items };
+  };
+
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
       if (error) throw error;
 
-      setTotal(data.totalCount);      
-      setOrders(data.items ?? []);
+      const norm = normalizeOrdersResponse(data);
+      setTotal(norm.totalCount);
+      setOrders(norm.items);
       } catch (error) {
         console.error(error);
+        setTotal(0);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -54,7 +81,19 @@ function ListOrdersPage() {
     fetchOrders();
   }, [searchTerm, status, pageSize, pageNumber]);
 
-  const totalPages = Math.ceil(total / pageSize);
+  const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
+  const displayedPage = total === 0 ? 0 : pageNumber;
+  const displayedTotalPages = total === 0 ? 0 : realTotalPages;
+
+  // Si hay resultados y quedamos fuera de rango, volver a página 1
+  useEffect(() => {
+    if (total > 0) {
+      const tp = Math.max(1, Math.ceil(total / pageSize));
+      if (pageNumber > tp || pageNumber === 0) setPageNumber(1);
+    }
+  }, [total, pageSize, pageNumber]);
+
+  const hasResults = !loading && total > 0;
 
   return (
     <div>
@@ -109,34 +148,32 @@ function ListOrdersPage() {
       </Card>
 
       <div className="mt-4 flex flex-col gap-4">
-        {loading ? (
-          <span className="animate-pulse">Cargando órdenes...</span>
-        ) : (
-          orders.map((order, index) => (
-           <Card key={order.id} className="animate-slideUp" style={{ animationDelay: `${index * 50}ms` }}>
-            <div className="flex justify-between items-center w-full">
-              <div>
-                <h1>#{order.id} | {order.customerId}</h1>
-                <p>Estado: {order.status}</p>
-              </div>
+         {loading && <span className="animate-pulse">Cargando órdenes...</span>}
 
-              <Button 
-                className="hidden sm:flex h-11 w-11 items-center justify-center cursor-default"
-              >
-                Ver
-              </Button>
-            </div>
+        {!loading && total === 0 && (
+          <Card className="p-4 text-center text-gray-600">
+            No hay órdenes para mostrar.
           </Card>
-          ))
         )}
+
+        {hasResults &&
+          orders.map((order, index) => (
+          <div key={order.id} style={{ animationDelay: `${index * 50}ms` }}>
+            <OrderCard
+              order={order}
+              onView={() => navigate(`/admin/orders/${order.id}`)}
+            />
+          </div>
+        ))
+      }
       </div>
 
       {/* PAGINACIÓN */}
       <Card className="mt-6 overflow-visible">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <Pagination
-            page={pageNumber}
-            totalPages={Math.max(1, Math.ceil(total / pageSize))}
+            page={displayedPage}
+            totalPages={displayedTotalPages}
             onChangePage={setPageNumber}
             pageSize={pageSize}
             onChangePageSize={(size) => {
@@ -146,7 +183,7 @@ function ListOrdersPage() {
             sizes={[2, 10, 15, 20]}
             showPageSize
             compact
-            className="flex flex-wrap gap-2 justify-center sm:justify-start" // 👈 wrap
+            className="flex flex-wrap gap-2 justify-center sm:justify-start"
           />
 
           <div className="text-sm text-gray-600">

@@ -8,9 +8,15 @@ export const getOrders = async (customerId = null, status = null, pageNumber = 1
     pageSize,
   });
 
+  
   try {
     // Primero intento con axios
     const response = await instance.get(`api/orders?${queryString}`);
+
+     if (response.status === 204) {
+      return { data: { totalCount: 0, items: [] }, error: null };
+    }
+
     return { data: response.data, error: null };
   } catch (err) {
     try {
@@ -23,6 +29,11 @@ export const getOrders = async (customerId = null, status = null, pageNumber = 1
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
+
+      
+     if (response.status === 204) {
+      return { data: { totalCount: 0, items: [] }, error: null };
+    }
 
       const text = await response.text();
       const data = text ? JSON.parse(text) : null;
