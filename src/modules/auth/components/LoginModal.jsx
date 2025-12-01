@@ -1,4 +1,4 @@
-// src/auth/modals/LoginModal.jsx
+//Components
 import Modal from '../../shared/components/Modal';
 import LoginForm from '../../auth/components/LoginForm';
 
@@ -8,7 +8,7 @@ export default function LoginModal({ isOpen, onClose }) {
       <h2 className="text-2xl font-bold mb-4 text-center">Iniciar sesión</h2>
 
       <LoginForm
-        onSuccess={onClose}  // ← al logear cierra modal
+        onSuccess={onClose}
       />
 
       <p className="text-center text-sm mt-4">
@@ -16,8 +16,8 @@ export default function LoginModal({ isOpen, onClose }) {
         <button
           className="text-blue-600 ml-1 bg-gray-100 hover:bg-gray-200 rounded px-2 py-1"
           onClick={() => {
-            onClose();            // cerramos login
-            window.dispatchEvent(new Event('open-register')); // abrimos register
+            onClose();           
+            window.dispatchEvent(new Event('open-register'));
           }}
         >
           Regístrate
