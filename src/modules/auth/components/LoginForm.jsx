@@ -107,7 +107,6 @@ function LoginForm({ onSuccess }) {
           <Button
             type="button"
             onClick={() => navigate('/register')}
-            className="bg-gray-200 text-gray-700 hover:bg-gray-300"
           >
             Registrarse
           </Button>
