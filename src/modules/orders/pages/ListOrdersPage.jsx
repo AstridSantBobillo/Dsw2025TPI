@@ -1,109 +1,34 @@
-import { useEffect, useState } from 'react';
-
-//Hooks
+import { useState } from 'react';
 import useSearchState from '../../shared/hooks/useSearchState';
 import useNoticeModal from '../../shared/hooks/useNoticeModal';
-
-// Components
 import Card from '../../shared/components/Card';
 import SearchBar from '../../shared/components/SearchBar';
 import Pagination from '../../shared/components/Pagination';
-import OrderCard from '../../orders/components/OrderCard';
-
-// Services
-import { getOrders } from '../services/listServices';
-
-//Helpers
-import { handleApiError } from '../../shared/helpers/handleApiError';
-import { frontendErrorMessage } from '../helpers/backendError';
-
-const orderStatus = {
-  ALL: '',
-  PENDING: 'pending',
-  PROCESSING: 'processing',
-  SHIPPED: 'shipped',
-  DELIVERED: 'delivered',
-  COMPLETED: 'completed',
-  CANCELLED: 'cancelled',
-};
+import OrderCard from '../components/OrderCard';
+import { useOrdersList } from '../hooks/useOrdersList';
+import { usePaginationFix } from '../../shared/hooks/usePaginationFix';
+import { getPaginationDisplayValues } from '../../shared/helpers/paginationUtils';
+import OrderStatusSelect from '../components/OrderStatusSelect';
+import { orderStatus } from '../helpers/orderStatus';
 
 function ListOrdersPage() {
-
   const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
   const [status, setStatus] = useState(orderStatus.ALL);
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
-  const [total, setTotal] = useState(0);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const normalizeOrdersResponse = (raw) => {
-    // 204 o null/undefined
-    if (!raw) return { totalCount: 0, items: [] };
-
-    // A veces podrían devolver array directo
-    if (Array.isArray(raw)) return { totalCount: raw.length, items: raw };
-
-    // Objeto con distintas posibles keys
-    const totalCount = Number(
-      raw.totalCount ?? raw.total ?? raw.count ?? 0,
-    ) || 0;
-
-    const items = Array.isArray(raw.items)
-      ? raw.items
-      : Array.isArray(raw.results)
-        ? raw.results
-        : [];
-
-    return { totalCount, items };
-  };
-
   const { open } = useNoticeModal();
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
+  const { total, orders, loading } = useOrdersList({
+    searchTerm,
+    status,
+    pageNumber,
+    pageSize,
+    onError: open,
+  });
 
-      if (error) throw error;
+  usePaginationFix(total, pageSize, pageNumber, setPageNumber);
 
-      const norm = normalizeOrdersResponse(data);
-
-      setTotal(norm.totalCount);
-      setOrders(norm.items);
-    } catch (err) {
-      const { message } = handleApiError(err, {
-        frontendMessages: frontendErrorMessage,
-        showAlert: false,
-      });
-
-      open(message);
-      setTotal(0);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, status, pageSize, pageNumber]);
-
-  const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
-  const displayedPage = total === 0 ? 0 : pageNumber;
-  const displayedTotalPages = total === 0 ? 0 : realTotalPages;
-
-  // Si hay resultados y quedamos fuera de rango, volver a página 1
-  useEffect(() => {
-    if (total > 0) {
-      const tp = Math.max(1, Math.ceil(total / pageSize));
-
-      if (pageNumber > tp || pageNumber === 0) setPageNumber(1);
-    }
-  }, [total, pageSize, pageNumber]);
-
+  const { displayedPage, displayedTotalPages } = getPaginationDisplayValues(total, pageNumber, pageSize);
   const hasResults = !loading && total > 0;
 
   return (
@@ -114,7 +39,6 @@ function ListOrdersPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
-          {/*  SearchBar estilo admin + botón limpiar */}
           <SearchBar
             variant="admin"
             value={inputValue}
@@ -140,23 +64,13 @@ function ListOrdersPage() {
             className="sm:flex-1"
           />
 
-          {/* Filtro de estado */}
-          <select
+          <OrderStatusSelect
             value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
+            onChange={(val) => {
+              setStatus(val);
               setPageNumber(1);
             }}
-            className="text-[1.1rem] border rounded px-2 py-2"
-          >
-            <option value={orderStatus.ALL}>Todos</option>
-            <option value={orderStatus.PENDING}>Pendientes</option>
-            <option value={orderStatus.PROCESSING}>Procesadas</option>
-            <option value={orderStatus.SHIPPED}>Enviadas</option>
-            <option value={orderStatus.DELIVERED}>Entregadas</option>
-            <option value={orderStatus.COMPLETED}>Completadas</option>
-            <option value={orderStatus.CANCELLED}>Canceladas</option>
-          </select>
+          />
         </div>
       </Card>
 
@@ -172,16 +86,11 @@ function ListOrdersPage() {
         {hasResults &&
           orders.map((order, index) => (
             <div key={order.id} style={{ animationDelay: `${index * 50}ms` }}>
-              <OrderCard
-                order={order}
-                onView={() => {}}
-              />
+              <OrderCard order={order} onView={() => {}} />
             </div>
-          ))
-        }
+          ))}
       </div>
 
-      {/* PAGINACIÓN */}
       <Pagination
         page={displayedPage}
         totalPages={displayedTotalPages}
@@ -196,7 +105,6 @@ function ListOrdersPage() {
         totalItems={total}
         className="mt-6"
       />
-
     </div>
   );
 }
