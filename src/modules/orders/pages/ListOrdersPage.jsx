@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 //Hooks
 import useSearchState from '../../shared/hooks/useSearchState';
 import useNoticeModal from '../../shared/hooks/useNoticeModal';
+import useOrderList from '../hooks/useOrderList';
 
 // Components
 import Card from '../../shared/components/Card';
@@ -34,62 +35,12 @@ function ListOrdersPage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const [total, setTotal] = useState(0);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const normalizeOrdersResponse = (raw) => {
-    // 204 o null/undefined
-    if (!raw) return { totalCount: 0, items: [] };
-
-    // A veces podrían devolver array directo
-    if (Array.isArray(raw)) return { totalCount: raw.length, items: raw };
-
-    // Objeto con distintas posibles keys
-    const totalCount = Number(
-      raw.totalCount ?? raw.total ?? raw.count ?? 0,
-    ) || 0;
-
-    const items = Array.isArray(raw.items)
-      ? raw.items
-      : Array.isArray(raw.results)
-        ? raw.results
-        : [];
-
-    return { totalCount, items };
-  };
-
-  const { open } = useNoticeModal();
-
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
-
-      if (error) throw error;
-
-      const norm = normalizeOrdersResponse(data);
-
-      setTotal(norm.totalCount);
-      setOrders(norm.items);
-    } catch (err) {
-      const { message } = handleApiError(err, {
-        frontendMessages: frontendErrorMessage,
-        showAlert: false,
-      });
-
-      open(message);
-      setTotal(0);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, status, pageSize, pageNumber]);
+  const { orders, total, loading } = useOrderList({
+      searchTerm,
+      status,
+      pageNumber,
+      pageSize,
+    });
 
   const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
   const displayedPage = total === 0 ? 0 : pageNumber;
