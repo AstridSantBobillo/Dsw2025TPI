@@ -107,25 +107,53 @@ function CreateProductForm() {
         <Input
           label='SKU'
           error={errors.sku?.message}
-          {...register('sku', { required: 'SKU es requerido' })}
+          {...register('sku', { required: 'SKU es requerido' ,
+            pattern: {
+              value: /^SKU-\d+$/,
+              message: "El formato debe ser 'SKU-XXX'",
+            },
+          })}
         />
 
         <Input
           label='Código Único'
           error={errors.cui?.message}
-          {...register('cui', { required: 'Código Único es requerido' })}
+          {...register('cui', { required: 'Código Único es requerido' ,
+            pattern: {
+              value: /^INT-\d+$/,
+              message: "El formato debe ser 'INT-XXX'",
+            },
+          })}
         />
 
         <Input
           label='Nombre'
           error={errors.name?.message}
-          {...register('name', { required: 'Nombre es requerido' })}
+          {...register('name', { required: 'Nombre es requerido' ,
+            minLength: {
+              value: 3,
+              message: 'Debe tener al menos 3 caracteres',
+            },
+            maxLength: {
+              value: 100,
+              message: 'No debe superar los 100 caracteres',
+            },
+          })}
         />
 
         <Input
           label='Descripción'
           error={errors.description?.message}
-          {...register('description', { required: 'Descripción es requerida' })}
+          {...register('description', { required: 'Descripción es requerida' ,
+            minLength: {
+              value: 10,
+              message: 'Debe tener al menos 10 caracteres',
+            },
+            maxLength: {
+              value: 500,
+              message: 'No debe superar los 500 caracteres',
+            },
+          })}
         />
 
         <Input
@@ -133,8 +161,12 @@ function CreateProductForm() {
           type='number'
           error={errors.price?.message}
           {...register('price', {
-            min: { value: 0, message: 'No puede tener un precio negativo' },
-          })}
+          required: 'El precio es requerido',
+          min: {
+            value: 1,
+            message: 'El precio debe ser mayor a cero',
+          },
+        })}
         />
 
         <Input
@@ -142,8 +174,12 @@ function CreateProductForm() {
           type='number'
           error={errors.stock?.message}
           {...register('stock', {
-            min: { value: 0, message: 'No puede tener un stock negativo' },
-          })}
+          required: 'El stock es requerido',
+          min: {
+            value: 0,
+            message: 'No puede tener un stock negativo',
+          },
+        })}
         />
 
         <div className="sm:text-end">

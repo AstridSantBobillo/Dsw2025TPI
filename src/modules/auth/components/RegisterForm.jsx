@@ -111,20 +111,47 @@ function RegisterForm({ onSuccess, fixedRole }) {
     >
       <Input
         label="Usuario"
-        {...register('username', { required: 'Usuario es obligatorio' })}
+        {...register('username', { required: 'Usuario es obligatorio',minLength: {
+            value: 4,
+            message: 'Debe tener al menos 4 caracteres',
+          },
+          pattern: {
+            value: /^[a-zA-Z0-9_-]+$/,
+            message: 'Solo se permiten letras, números, guiones y guiones bajos',
+          },
+        })}
         error={errors.username?.message}
       />
 
       <Input
         label="Email"
-        {...register('email', { required: 'Email es obligatorio' })}
+        {...register('email', { required: 'Email es obligatorio',
+          pattern: {
+            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Formato de email inválido',
+          },
+        })}
         error={errors.email?.message}
       />
 
       <PasswordInput
         label="Contraseña"
         compact
-        registerProps={register('password', { required: 'La contraseña es obligatoria' })}
+        registerProps={register('password', { required: 'La contraseña es obligatoria', minLength: {
+            value: 8,
+            message: 'La contraseña debe tener al menos 8 caracteres',
+          },
+          validate: {
+            hasUppercase: (v) =>
+              /[A-Z]/.test(v) || 'Debe tener al menos una mayúscula',
+            hasLowercase: (v) =>
+              /[a-z]/.test(v) || 'Debe tener al menos una minúscula',
+            hasNumber: (v) =>
+              /[0-9]/.test(v) || 'Debe tener al menos un número',
+            hasSpecial: (v) =>
+              /[^A-Za-z0-9]/.test(v) || 'Debe tener un carácter especial',
+          },
+        })}
         error={errors.password?.message}
       />
 
