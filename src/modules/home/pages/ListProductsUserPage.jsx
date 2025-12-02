@@ -7,7 +7,6 @@ import useSearchState from '../../shared/hooks/useSearchState';
 import { useCart } from '../../cart/hooks/useCart';
 
 // Components
-import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import UserHeaderMenu from '../../shared/components/UserHeaderMenu';
@@ -19,6 +18,10 @@ import ProductCard from '../../products/components/ProductCard';
 
 // Services
 import { getClientProducts } from '../../products/services/listUser';
+
+//Helpers
+import { handleApiError } from '../../shared/helpers/handleApiError';
+import { frontendErrorMessage } from '../../products/helpers/backendError';
 
 function ListProductsUserPage() {
   const defaultProductImage =
@@ -96,7 +99,13 @@ function ListProductsUserPage() {
         setTotal(norm.total);
         setProducts(norm.productItems);
       } catch (error) {
-        console.error(error);
+        const result = handleApiError(error, {
+          frontendMessages: frontendErrorMessage,
+          showAlert: false,
+        });
+
+        open(result.message);
+
         setTotal(0);
         setProducts([]);
       } finally {

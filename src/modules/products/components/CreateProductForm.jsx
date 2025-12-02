@@ -11,6 +11,7 @@ import { createProduct } from '../services/create';
 
 // Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
+import { handleApiError } from '../../shared/helpers/handleApiError';
 
 function CreateProductForm() {
   const {
@@ -47,33 +48,6 @@ function CreateProductForm() {
     9103: 'cui',
   };
 
-  // Aplica errores de backend a campos; devuelve true si mapeó alguno
-  const setFieldErrorsFromBackend = (backendError) => {
-    let hasFieldMatch = false;
-
-    const apply = (code, messageFallback) => {
-      const field = fieldByCode[code];
-      const message = frontendErrorMessage[code] || messageFallback;
-
-      if (field && message) {
-        setError(field, { type: 'backend', message });
-        hasFieldMatch = true;
-      }
-    };
-
-    // Caso típico: errors: [{ code, message }, ...]
-    if (Array.isArray(backendError?.errors) && backendError.errors.length > 0) {
-      backendError.errors.forEach((err) => {
-        apply(err.code, err.message);
-      });
-    } else if (backendError?.code) {
-      // Caso sin array, solo code y detail
-      apply(backendError.code, backendError.detail || backendError.message);
-    }
-
-    return hasFieldMatch;
-  };
-
   const onValid = async (formData) => {
 
     setErrorBackendMessage('');
@@ -81,38 +55,43 @@ function CreateProductForm() {
 
     try {
       await createProduct(formData);
-
       navigate('/admin/products');
-    } catch (error) {
-      const backendError = error?.backendError || error; // por si tu wrapper ya setea backendError
+    } catch (err) {
+      const result = handleApiError(err, {
+        frontendMessages: frontendErrorMessage,
+        showAlert: false,
+      });
 
-      if (backendError) {
-        const matched = setFieldErrorsFromBackend(backendError);
+      // Intentamos mapear errores de campo
+      const matched = result.full?.errors?.some((error) => {
+        const field = fieldByCode[error.code];
+        const message = frontendErrorMessage[error.code] || error.message;
 
-        // Si no se pudo mapear a campos, mostramos un mensaje general traducible
-        if (!matched) {
-          const translated =
-            (backendError.code && frontendErrorMessage[backendError.code]) || null;
+        if (field && message) {
+          setError(field, { type: 'backend', message });
 
-          setErrorBackendMessage(
-            backendError.frontendErrorMessage ||
-              translated ||
-              backendError.backendMessage ||
-              backendError.detail ||
-              backendError.message ||
-              'Contactar a Soporte',
-          );
+          return true;
         }
 
-        return;
-      }
+        return false;
+      });
 
-      setErrorBackendMessage('Contactar a Soporte');
+      if (!matched) {
+        // Si no se pudo mapear ningún error a campos, ahora sí mostramos mensaje general
+        setErrorBackendMessage(result.message);
+
+        if (result.status !== 400) {
+          // solo en errores más serios (500, 404, etc.)
+          alert(result.message);
+        }
+      }
     }
+
   };
 
   return (
-    <form
+    <Card className="animate-fadeIn">
+      <form
       className="
         flex flex-col gap-4
         bg-white
@@ -126,62 +105,62 @@ function CreateProductForm() {
       "
       onSubmit={handleSubmit(onValid)}
     >
-      <Input
-        label='SKU'
-        error={errors.sku?.message}
-        {...register('sku', {
-          required: 'SKU es requerido',
-        })}
-      />
-      <Input
-        label='Código Único'
-        error={errors.cui?.message}
-        {...register('cui', {
-          required: 'Código Único es requerido',
-        })}
-      />
-      <Input
-        label='Nombre'
-        error={errors.name?.message}
-        {...register('name', {
-          required: 'Nombre es requerido',
-        })}
-      />
-      <Input
-        label='Descripción'
-        error={errors.description?.message}
-        {...register('description', {
-          required: 'Descripción es requerida',
-        })}
-      />
-      <Input
-        label='Precio'
-        error={errors.price?.message}
-        type='number'
-        {...register('price', {
-          min: {
-            value: 0,
-            message: 'No puede tener un precio negativo',
-          },
-        })}
-      />
-      <Input
-        label='Stock'
-        error={errors.stock?.message}
-        {...register('stock', {
-          min: {
-            value: 0,
-            message: 'No puede tener un stock negativo',
-          },
-        })}
-      />
+        <Input
+          label='SKU'
+          error={errors.sku?.message}
+          {...register('sku', {
+            required: 'SKU es requerido',
+          })}
+        />
+        <Input
+          label='Código Único'
+          error={errors.cui?.message}
+          {...register('cui', {
+            required: 'Código Único es requerido',
+          })}
+        />
+        <Input
+          label='Nombre'
+          error={errors.name?.message}
+          {...register('name', {
+            required: 'Nombre es requerido',
+          })}
+        />
+        <Input
+          label='Descripción'
+          error={errors.description?.message}
+          {...register('description', {
+            required: 'Descripción es requerida',
+          })}
+        />
+        <Input
+          label='Precio'
+          error={errors.price?.message}
+          type='number'
+          {...register('price', {
+            min: {
+              value: 0,
+              message: 'No puede tener un precio negativo',
+            },
+          })}
+        />
+        <Input
+          label='Stock'
+          error={errors.stock?.message}
+          {...register('stock', {
+            min: {
+              value: 0,
+              message: 'No puede tener un stock negativo',
+            },
+          })}
+        />
+        <div className='sm:text-end'>
+          <Button type='submit' className='w-full sm:w-fit'>Crear Producto</Button>
+        </div>
 
-      <div className="flex flex-col gap-4">
-        <Button type='submit'>Crear Producto</Button>
-      </div>
-
-      {errorBackendMessage && <span className='text-red-500'>{errorBackendMessage}</span>}
-    </form>
+        {errorBackendMessage && <span className='text-red-500'>{errorBackendMessage}</span>}
+      </form>
+    </Card>
   );
 };
 

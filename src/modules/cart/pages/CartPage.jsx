@@ -22,6 +22,10 @@ import CartCard from '../components/CartCard';
 // Services
 import { createOrder } from '../../orders/services/createOrder';
 
+// Helpers
+import { handleApiError } from '../../shared/helpers/handleApiError';
+import { frontendErrorMessage as orderErrorMessages } from '../../orders/helpers/backendError';
+
 function CartPage() {
   const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
@@ -65,6 +69,12 @@ function CartPage() {
       return;
     }
 
+    if (!user?.customerId) {
+      openNotification('Solo los clientes pueden realizar pedidos.');
+
+      return;
+    }
+
     try {
       const orderData = {
         customerId: user.customerId,
@@ -84,8 +94,13 @@ function CartPage() {
       clearCart();
       navigate('/');
     } catch (err) {
-      console.error(err);
-      openNotification('Error al procesar la orden.');
+      const result = handleApiError(err, {
+        frontendMessages: orderErrorMessages,
+        showAlert: false,
+        setErrorMessage: openNotification,
+      });
+
+      openNotification(result.message);
     }
   };
 
