@@ -166,28 +166,20 @@ function ListProductsPage() {
       </div>
 
       {/* PAGINATION  */}
-      <Card className="mt-6 overflow-visible">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <Pagination
-            page={displayedPage}
-            totalPages={displayedTotalPages}
-            onChangePage={setPageNumber}
-            pageSize={pageSize}
-            onChangePageSize={(size) => {
-              setPageNumber(1);
-              setPageSize(size);
-            }}
-            sizes={[2, 10, 15, 20]}
-            showPageSize
-            compact
-            className="flex flex-wrap gap-2 justify-center sm:justify-start"
-          />
-
-          <div className="text-sm text-gray-600">
-            Total: <strong>{total}</strong>
-          </div>
-        </div>
-      </Card>
+      <Pagination
+        page={displayedPage}
+        totalPages={displayedTotalPages}
+        onChangePage={setPageNumber}
+        pageSize={pageSize}
+        onChangePageSize={(size) => {
+          setPageNumber(1);
+          setPageSize(size);
+        }}
+        sizes={[2, 10, 15, 20]}
+        showPageSize
+        totalItems={total}
+        className="mt-6"
+      />
 
     </div>
 
