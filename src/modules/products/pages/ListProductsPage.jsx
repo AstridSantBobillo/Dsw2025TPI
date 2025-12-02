@@ -39,7 +39,7 @@ function ListProductsPage() {
   const [ products, setProducts ] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  
+
   const { isOpen, isClosing, message, open, close } = useNoticeModal();
 
   const normalizeProductsResponse = (raw) => {
@@ -69,15 +69,15 @@ function ListProductsPage() {
         setTotal(norm.total);
         setProducts(norm.productItems);
       } catch (error) {
-       console.error(error);
-  setTotal(0);
-  setProducts([]);
+        console.error(error);
+        setTotal(0);
+        setProducts([]);
 
-  handleApiError(error, {
-    frontendMessages: frontendErrorMessage,
-    setErrorMessage: open, // 👈 importante: usa `open` del modal
-    showAlert: false, // desactiva alert()
-  });
+        handleApiError(error, {
+          frontendMessages: frontendErrorMessage,
+          setErrorMessage: open,
+          showAlert: false,
+        });
       } finally {
         setLoading(false);
       }
@@ -203,8 +203,7 @@ function ListProductsPage() {
         </div>
       </Card>
 
-            <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
-
+      <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
 
     </div>
 

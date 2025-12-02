@@ -63,45 +63,46 @@ function CartPage() {
   }, []);
 
   const sendOrder = async () => {
-  if (!user) {
-    open('loginModal');
-    return;
-  }
-  if (!user?.customerId) {
-  openNotification('Solo los clientes pueden realizar pedidos.');
-  return;
-}
+    if (!user) {
+      open('loginModal');
 
+      return;
+    }
 
-  try {
-    const orderData = {
-      customerId: user.customerId,
-      shippingAddress: 'Sin especificar',
-      billingAddress: 'Sin especificar',
-      notes: '',
-      orderItems: cart.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-      })),
-    };
+    if (!user?.customerId) {
+      openNotification('Solo los clientes pueden realizar pedidos.');
 
-    const { error } = await createOrder(orderData);
+      return;
+    }
 
-    if (error) throw error;
+    try {
+      const orderData = {
+        customerId: user.customerId,
+        shippingAddress: 'Sin especificar',
+        billingAddress: 'Sin especificar',
+        notes: '',
+        orderItems: cart.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      };
 
-    clearCart();
-    navigate('/');
-  } catch (err) {
-    const result = handleApiError(err, {
-      frontendMessages: orderErrorMessages, // <<< usa errores de ORDENES
-      showAlert: false,                    // no alert()
-      setErrorMessage: openNotification,   // abre NoticeModal
-    });
+      const { error } = await createOrder(orderData);
 
-    openNotification(result.message);
-  }
-};
+      if (error) throw error;
 
+      clearCart();
+      navigate('/');
+    } catch (err) {
+      const result = handleApiError(err, {
+        frontendMessages: orderErrorMessages,
+        showAlert: false,
+        setErrorMessage: openNotification,
+      });
+
+      openNotification(result.message);
+    }
+  };
 
   const handleCheckout = () => sendOrder();
 

@@ -48,7 +48,7 @@ export default function OrderCard({
   showTotal = false,
   showCreatedAt = false,
 }) {
-  const { id, customerId, name, status, totalAmount, createdAt } = order || {};
+  const { id, name, status, totalAmount, createdAt } = order || {};
 
   return (
     <Card className="animate-slideUp">

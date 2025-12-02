@@ -55,38 +55,39 @@ function CreateProductForm() {
     clearErrors(); // por si venían errores previos
 
     try {
-  await createProduct(formData);
-  navigate('/admin/products');
-} catch (err) {
-  const result = handleApiError(err, {
-    frontendMessages: frontendErrorMessage,
-    showAlert: false, // evitamos alert por ahora
-  });
+      await createProduct(formData);
+      navigate('/admin/products');
+    } catch (err) {
+      const result = handleApiError(err, {
+        frontendMessages: frontendErrorMessage,
+        showAlert: false,
+      });
 
-  // Intentamos mapear errores de campo
-  const matched = result.full?.errors?.some((error) => {
-    const field = fieldByCode[error.code];
-    const message = frontendErrorMessage[error.code] || error.message;
+      // Intentamos mapear errores de campo
+      const matched = result.full?.errors?.some((error) => {
+        const field = fieldByCode[error.code];
+        const message = frontendErrorMessage[error.code] || error.message;
 
-    if (field && message) {
-      setError(field, { type: 'backend', message });
-      return true;
+        if (field && message) {
+          setError(field, { type: 'backend', message });
+
+          return true;
+        }
+
+        return false;
+      });
+
+      if (!matched) {
+        // Si no se pudo mapear ningún error a campos, ahora sí mostramos mensaje general
+        setErrorBackendMessage(result.message);
+
+        if (result.status !== 400) {
+          // solo en errores más serios (500, 404, etc.)
+          alert(result.message);
+        }
+      }
     }
 
-    return false;
-  });
-
-  if (!matched) {
-    // Si no se pudo mapear ningún error a campos, ahora sí mostramos mensaje general
-    setErrorBackendMessage(result.message); // ← Esto solo si no hubo errores de campo
-
-    if (result.status !== 400) {
-      // solo en errores más serios (500, 404, etc.)
-      alert(result.message);
-    }
-  }
-}
-  
   };
 
   return (

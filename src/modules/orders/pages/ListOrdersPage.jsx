@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 //Hooks
 import useSearchState from '../../shared/hooks/useSearchState';
 import useNoticeModal from '../../shared/hooks/useNoticeModal';
 
 // Components
-import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import SearchBar from '../../shared/components/SearchBar';
 import Pagination from '../../shared/components/Pagination';
@@ -19,7 +17,6 @@ import { getOrders } from '../services/listServices';
 import { handleApiError } from '../../shared/helpers/handleApiError';
 import { frontendErrorMessage } from '../helpers/backendError';
 
-
 const orderStatus = {
   ALL: '',
   PENDING: 'pending',
@@ -31,7 +28,6 @@ const orderStatus = {
 };
 
 function ListOrdersPage() {
-  const navigate = useNavigate();
 
   const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
   const [status, setStatus] = useState(orderStatus.ALL);
@@ -63,35 +59,32 @@ function ListOrdersPage() {
     return { totalCount, items };
   };
 
-  const { open } = useNoticeModal(); // o lo que uses para mostrar errores
+  const { open } = useNoticeModal();
 
-const fetchOrders = async () => {
-  try {
-    setLoading(true);
-    const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const norm = normalizeOrdersResponse(data);
-    setTotal(norm.totalCount);
-    setOrders(norm.items);
-  } catch (err) {
-    const { message } = handleApiError(err, {
-      frontendMessages: frontendErrorMessage, // de orders
-      showAlert: false, // evitás alert()
-    });
+      const norm = normalizeOrdersResponse(data);
 
-    // Mostrás el mensaje al usuario
-    open(message); // si usás NoticeModal
-    // setErrorMessage(message); // si usás un mensaje en pantalla
-    // toast.error(message); // si usás react-toastify u otro
-    setTotal(0);
-    setOrders([]);
-  } finally {
-    setLoading(false);
-  }
-};
+      setTotal(norm.totalCount);
+      setOrders(norm.items);
+    } catch (err) {
+      const { message } = handleApiError(err, {
+        frontendMessages: frontendErrorMessage,
+        showAlert: false,
+      });
 
+      open(message);
+      setTotal(0);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchOrders();

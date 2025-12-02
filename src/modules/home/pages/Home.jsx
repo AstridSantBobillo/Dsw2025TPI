@@ -31,20 +31,24 @@ function Home() {
           frontendMessages: productErrors,
           showAlert: false,
         });
-        open(message); // o cualquier otro handler
+
+        open(message);
       }
 
       try {
         const { data: orderData } = await getOrders('', '', 1, 20);
+
         if (orderData) setTotalOrders(orderData.totalCount);
       } catch (err) {
         const { message } = handleApiError(err, {
           frontendMessages: orderErrors,
           showAlert: false,
         });
+
         open(message);
       }
     };
+
     fetchTotals();
   }, []);
 

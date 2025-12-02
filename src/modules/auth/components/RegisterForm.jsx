@@ -53,9 +53,9 @@ function RegisterForm({ onSuccess, fixedRole }) {
       let hasFieldMatch = false;
 
       (backendError?.errors || []).forEach((err) => {
-       const code = err.code ?? null;
-const field = fieldByCode[code];
-const message = frontendErrorMessage[code] || err.message;
+        const code = err.code ?? null;
+        const field = fieldByCode[code];
+        const message = frontendErrorMessage[code] || err.message;
 
         if (field && message) {
           const fieldList = Array.isArray(field) ? field : [field];
@@ -69,38 +69,38 @@ const message = frontendErrorMessage[code] || err.message;
 
       return hasFieldMatch;
     };
-try {
-  const { error } = await registerUser(username, password, email, finalRole);
 
-  if (error) {
-    const matched = setFieldErrorsFromBackend(error);
+    try {
+      const { error } = await registerUser(username, password, email, finalRole);
 
-    if (!matched) {
-      handleApiError(error, {
+      if (error) {
+        const matched = setFieldErrorsFromBackend(error);
+
+        if (!matched) {
+          handleApiError(error, {
+            frontendMessages: frontendErrorMessage,
+            setErrorMessage,
+            showAlert: false,
+          });
+        }
+
+        return;
+      }
+
+      if (onSuccess) return onSuccess();
+
+      navigate('/login');
+    } catch (err) {
+      const result = handleApiError(err, {
         frontendMessages: frontendErrorMessage,
         setErrorMessage,
-        showAlert: false,
+        showAlert: true,
       });
+
+      if (result.full?.errors?.length > 0) {
+        setFieldErrorsFromBackend(result.full);
+      }
     }
-
-    return;
-  }
-
-  if (onSuccess) return onSuccess();
-
-  navigate('/login');
-} catch (err) {
-  const result = handleApiError(err, {
-    frontendMessages: frontendErrorMessage,
-    setErrorMessage,
-    showAlert: true,
-  });
-
-  // Si vino con errores específicos, intentá mapearlos también
-  if (result.full?.errors?.length > 0) {
-    setFieldErrorsFromBackend(result.full);
-  }
-}
 
   };
 

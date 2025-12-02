@@ -7,7 +7,6 @@ import useSearchState from '../../shared/hooks/useSearchState';
 import { useCart } from '../../cart/hooks/useCart';
 
 // Components
-import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import MobileSideMenu from '../../shared/components/MobileSideMenu';
 import UserHeaderMenu from '../../shared/components/UserHeaderMenu';
@@ -101,14 +100,14 @@ function ListProductsUserPage() {
         setProducts(norm.productItems);
       } catch (error) {
         const result = handleApiError(error, {
-    frontendMessages: frontendErrorMessage, // solo si tenés códigos mapeados
-    showAlert: false, // no uses alert si tenés NoticeModal
-  });
+          frontendMessages: frontendErrorMessage,
+          showAlert: false,
+        });
 
-  open(result.message); // mostramos el error en el modal reutilizable
+        open(result.message);
 
-  setTotal(0);
-  setProducts([]);
+        setTotal(0);
+        setProducts([]);
       } finally {
         setLoading(false);
       }

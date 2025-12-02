@@ -28,39 +28,39 @@ function LoginForm({ onSuccess }) {
   const { singin } = useAuth();
 
   const onValid = async (formData) => {
-  setErrorMessage('');
-  setErrorMessages([]);
+    setErrorMessage('');
+    setErrorMessages([]);
 
-  try {
-    const { error } = await singin(formData.username, formData.password);
+    try {
+      const { error } = await singin(formData.username, formData.password);
 
-    if (error) {
-      const { full } = handleApiError(error, {
+      if (error) {
+        const { full } = handleApiError(error, {
+          frontendMessages: frontendErrorMessage,
+          setErrorMessage,
+          showAlert: false,
+        });
+
+        const detailedMessages = (full?.errors || []).map(
+          (err) => frontendErrorMessage[err.code] || err.message,
+        ).filter(Boolean);
+
+        setErrorMessages(detailedMessages);
+
+        return;
+      }
+
+      if (onSuccess) return onSuccess();
+
+      navigate('/admin/home');
+    } catch (err) {
+      handleApiError(err, {
         frontendMessages: frontendErrorMessage,
         setErrorMessage,
-        showAlert: false, // si querés evitar los alert
+        showAlert: true, // mostrar alert si falla de forma inesperada
       });
-
-      const detailedMessages = (full?.errors || []).map(
-        (err) => frontendErrorMessage[err.code] || err.message
-      ).filter(Boolean);
-
-      setErrorMessages(detailedMessages);
-      return;
     }
-
-    if (onSuccess) return onSuccess();
-
-    navigate('/admin/home');
-  } catch (err) {
-    handleApiError(err, {
-      frontendMessages: frontendErrorMessage,
-      setErrorMessage,
-      showAlert: true, // mostrar alert si falla de forma inesperada
-    });
-  }
-};
-
+  };
 
   return (
     <form
