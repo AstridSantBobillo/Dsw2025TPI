@@ -243,7 +243,7 @@ function CartPage() {
           <Card className="p-4 sticky top-4">
             <h2 className="text-lg font-semibold mb-4">Detalle del pedido</h2>
             <div className="space-y-2 mb-4">
-              <p className="text-sm">Cantidad de en total: <strong>{totalItems}</strong></p>
+              <p className="text-sm">Cantidad de productos en total: <strong>{totalItems}</strong></p>
               <p className="text-lg font-semibold">Total a pagar: <strong>${totalAmount.toFixed(2)}</strong></p>
             </div>
 

@@ -10,7 +10,7 @@ function QuantitySelector({ value, min = 1, max = 99, onChange }) {
       <Button
         type="button"
         onClick={dec}
-        disabled={value <= min}
+        disabled={value <= min} //si la cantidad q se quiere es menor a 1
         className="px-2 py-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
       >
         ➖
@@ -66,6 +66,10 @@ export default function ProductCard({
           </p>
         )}
 
+          {isMaxReached && (
+            <span className="text-sm text-red-600 font-medium">No hay stock</span>
+          )}
+
         <div className="flex items-center gap-4 mt-auto pt-3">
           <QuantitySelector
             value={quantity}
@@ -73,10 +77,6 @@ export default function ProductCard({
             max={stockQuantity}
             onChange={onChangeQty}
           />
-
-          {isMaxReached && (
-            <span className="text-sm text-red-600 font-medium">No hay stock</span>
-          )}
 
           <Button
             onClick={onAdd}
