@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 // Hooks
 import useSearchState from '../../shared/hooks/useSearchState';
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -10,9 +11,14 @@ import Card from '../../shared/components/Card';
 import SearchBar from '../../shared/components/SearchBar';
 import Pagination from '../../shared/components/Pagination';
 import AdminProductCard from '../../products/components/AdminProductCard';
+import NoticeModal from '../../shared/components/NoticeModal';
 
 // Services
 import { getProducts } from '../services/list';
+
+//Helpers
+import { handleApiError } from '../../shared/helpers/handleApiError';
+import { frontendErrorMessage } from '../helpers/backendError';
 
 const productStatus = {
   ALL: 'all',
@@ -33,6 +39,8 @@ function ListProductsPage() {
   const [ products, setProducts ] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  
+  const { isOpen, isClosing, message, open, close } = useNoticeModal();
 
   const normalizeProductsResponse = (raw) => {
     if (!raw) return { total: 0, productItems: [] };            // 204 / null
@@ -61,9 +69,15 @@ function ListProductsPage() {
         setTotal(norm.total);
         setProducts(norm.productItems);
       } catch (error) {
-        console.error(error);
-        setTotal(0);
-        setProducts([]);
+       console.error(error);
+  setTotal(0);
+  setProducts([]);
+
+  handleApiError(error, {
+    frontendMessages: frontendErrorMessage,
+    setErrorMessage: open, // 👈 importante: usa `open` del modal
+    showAlert: false, // desactiva alert()
+  });
       } finally {
         setLoading(false);
       }
@@ -188,6 +202,9 @@ function ListProductsPage() {
           </div>
         </div>
       </Card>
+
+            <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
+
 
     </div>
 

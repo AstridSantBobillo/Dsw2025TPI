@@ -22,6 +22,10 @@ import CartCard from '../components/CartCard';
 // Services
 import { createOrder } from '../../orders/services/createOrder';
 
+// Helpers
+import { handleApiError } from '../../shared/helpers/handleApiError';
+import { frontendErrorMessage as orderErrorMessages } from '../../orders/helpers/backendError';
+
 function CartPage() {
   const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
@@ -59,35 +63,45 @@ function CartPage() {
   }, []);
 
   const sendOrder = async () => {
-    if (!user) {
-      open('loginModal');
+  if (!user) {
+    open('loginModal');
+    return;
+  }
+  if (!user?.customerId) {
+  openNotification('Solo los clientes pueden realizar pedidos.');
+  return;
+}
 
-      return;
-    }
 
-    try {
-      const orderData = {
-        customerId: user.customerId,
-        shippingAddress: 'Sin especificar',
-        billingAddress: 'Sin especificar',
-        notes: '',
-        orderItems: cart.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-      };
+  try {
+    const orderData = {
+      customerId: user.customerId,
+      shippingAddress: 'Sin especificar',
+      billingAddress: 'Sin especificar',
+      notes: '',
+      orderItems: cart.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+    };
 
-      const { error } = await createOrder(orderData);
+    const { error } = await createOrder(orderData);
 
-      if (error) throw error;
+    if (error) throw error;
 
-      clearCart();
-      navigate('/');
-    } catch (err) {
-      console.error(err);
-      openNotification('Error al procesar la orden.');
-    }
-  };
+    clearCart();
+    navigate('/');
+  } catch (err) {
+    const result = handleApiError(err, {
+      frontendMessages: orderErrorMessages, // <<< usa errores de ORDENES
+      showAlert: false,                    // no alert()
+      setErrorMessage: openNotification,   // abre NoticeModal
+    });
+
+    openNotification(result.message);
+  }
+};
+
 
   const handleCheckout = () => sendOrder();
 

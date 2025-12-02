@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 //Hooks
 import useSearchState from '../../shared/hooks/useSearchState';
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -13,6 +14,11 @@ import OrderCard from '../../orders/components/OrderCard';
 
 // Services
 import { getOrders } from '../services/listServices';
+
+//Helpers
+import { handleApiError } from '../../shared/helpers/handleApiError';
+import { frontendErrorMessage } from '../helpers/backendError';
+
 
 const orderStatus = {
   ALL: '',
@@ -57,25 +63,35 @@ function ListOrdersPage() {
     return { totalCount, items };
   };
 
-  const fetchOrders = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
+  const { open } = useNoticeModal(); // o lo que uses para mostrar errores
 
-      if (error) throw error;
+const fetchOrders = async () => {
+  try {
+    setLoading(true);
+    const { data, error } = await getOrders(searchTerm, status, pageNumber, pageSize);
 
-      const norm = normalizeOrdersResponse(data);
+    if (error) throw error;
 
-      setTotal(norm.totalCount);
-      setOrders(norm.items);
-    } catch (error) {
-      console.error(error);
-      setTotal(0);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const norm = normalizeOrdersResponse(data);
+    setTotal(norm.totalCount);
+    setOrders(norm.items);
+  } catch (err) {
+    const { message } = handleApiError(err, {
+      frontendMessages: frontendErrorMessage, // de orders
+      showAlert: false, // evitás alert()
+    });
+
+    // Mostrás el mensaje al usuario
+    open(message); // si usás NoticeModal
+    // setErrorMessage(message); // si usás un mensaje en pantalla
+    // toast.error(message); // si usás react-toastify u otro
+    setTotal(0);
+    setOrders([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetchOrders();

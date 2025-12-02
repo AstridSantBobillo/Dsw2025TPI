@@ -12,6 +12,7 @@ import Button from '../../shared/components/Button';
 
 //Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
+import { handleApiError } from '../../shared/helpers/handleApiError';
 
 function LoginForm({ onSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
@@ -27,50 +28,39 @@ function LoginForm({ onSuccess }) {
   const { singin } = useAuth();
 
   const onValid = async (formData) => {
-    try {
-      const { error } = await singin(formData.username, formData.password);
+  setErrorMessage('');
+  setErrorMessages([]);
 
-      if (error) {
-        const detailedMessages = (error.errors || [])
-          .map((err) => frontendErrorMessage[err.code] || err.message)
-          .filter(Boolean);
+  try {
+    const { error } = await singin(formData.username, formData.password);
 
-        setErrorMessages(detailedMessages);
-        setErrorMessage(
-          error.frontendErrorMessage
-          || detailedMessages[0]
-          || error.backendMessage
-          || 'Llame a soporte',
-        );
+    if (error) {
+      const { full } = handleApiError(error, {
+        frontendMessages: frontendErrorMessage,
+        setErrorMessage,
+        showAlert: false, // si querés evitar los alert
+      });
 
-        return;
-      }
+      const detailedMessages = (full?.errors || []).map(
+        (err) => frontendErrorMessage[err.code] || err.message
+      ).filter(Boolean);
 
-      if (onSuccess) return onSuccess();
-
-      navigate('/admin/home');
-    } catch (error) {
-      const backendError = error.backendError;
-
-      if (backendError) {
-        const detailedMessages = (backendError.errors || [])
-          .map((e) => frontendErrorMessage[e.code] || e.message)
-          .filter(Boolean);
-
-        setErrorMessages(detailedMessages);
-        setErrorMessage(
-          backendError.frontendErrorMessage
-          || detailedMessages[0]
-          || backendError.backendMessage
-          || 'Llame a soporte',
-        );
-
-        return;
-      }
-
-      setErrorMessage('Llame a soporte');
+      setErrorMessages(detailedMessages);
+      return;
     }
-  };
+
+    if (onSuccess) return onSuccess();
+
+    navigate('/admin/home');
+  } catch (err) {
+    handleApiError(err, {
+      frontendMessages: frontendErrorMessage,
+      setErrorMessage,
+      showAlert: true, // mostrar alert si falla de forma inesperada
+    });
+  }
+};
+
 
   return (
     <form
