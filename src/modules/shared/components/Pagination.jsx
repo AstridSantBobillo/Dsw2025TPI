@@ -15,24 +15,24 @@ export default function Pagination({
   const canNext = page < totalPages;
 
   return (
-    <div className={`flex flex-col gap-3 items-center sm:flex-row sm:gap-4 sm:items-center sm:justify-center bg-white border border-gray-200 rounded-lg shadow-sm p-3 ${className}`}>
-      <div className="flex gap-2 items-center sm:gap-4">
+    <div className={`flex flex-col gap-2 items-center sm:flex-row sm:gap-2 sm:items-center sm:justify-center bg-white border border-gray-200 rounded-lg shadow-sm p-2 ${className}`}>
+      <div className="flex gap-1 items-center">
         <Button
           variant="secondary"
           disabled={!canPrev}
           onClick={() => canPrev && onChangePage(page - 1)}
-          className="px-2 py-2 min-w-[72px] font-bold justify-center text-sm border-gray-400 leading-tight disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 py-1 min-w-[64px] text-xs font-bold justify-center border-gray-400 leading-tight disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Atras
         </Button>
 
-        <span className="text-sm font-medium px-3 py-2 bg-gray-100 rounded whitespace-nowrap">{page} / {totalPages}</span>
+        <span className="text-xs font-medium px-2 py-1 bg-gray-100 rounded whitespace-nowrap">{page} / {totalPages}</span>
 
         <Button
           variant="secondary"
           disabled={!canNext}
           onClick={() => canNext && onChangePage(page + 1)}
-          className="px-2 py-2 min-w-[72px] font-bold justify-center text-sm leading-tight disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-2 py-y min-w-[64px] font-bold justify-center text-xs leading-tight disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Siguiente
         </Button>
