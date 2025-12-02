@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 // Components
 import Button from '../../shared/components/Button';
-import Card from '../../shared/components/Card';
 import Input from '../../shared/components/Input';
 
 // Services
@@ -93,15 +92,19 @@ function CreateProductForm() {
   return (
     <Card className="animate-fadeIn">
       <form
-        className='
-          flex
-          flex-col
-          gap-20
-          p-8
-          sm:gap-4
-        '
-        onSubmit={handleSubmit(onValid)}
-      >
+      className="
+        flex flex-col gap-4
+        bg-white
+        p-4
+        rounded-xl
+        w-full
+        max-w-md
+        mx-auto
+        animate-slideUp
+        shadow-lg
+      "
+      onSubmit={handleSubmit(onValid)}
+    >
         <Input
           label='SKU'
           error={errors.sku?.message}

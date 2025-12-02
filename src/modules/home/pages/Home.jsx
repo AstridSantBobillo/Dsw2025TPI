@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-// Components
 import Card from '../../shared/components/Card';
 import { handleApiError } from '../../shared/helpers/handleApiError';
 import { frontendErrorMessage as productErrors } from '../../products/helpers/backendError';
@@ -25,7 +24,6 @@ function Home() {
         const { data: orderData } = await getOrders('', '', 1, 20);
 
         if (orderData) setTotalOrders(orderData.totalCount);
-
       } catch (err) {
         const { message } = handleApiError(err, {
           frontendMessages: productErrors,
@@ -53,21 +51,19 @@ function Home() {
   }, []);
 
   return (
-    <div className="
-    flex
-    flex-col
-    gap-3
-    sm:grid
-    sm:grid-cols-2
-    ">
-      <Card className="animate-slideUp" style={{ animationDelay: '0ms' }}>
-        <h3>Productos</h3>
-        <p>Cantidad: {totalProducts}</p>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 auto-rows-fr">
+      <Card>
+        <div className="space-y-1">
+          <p className="text-1xl text-black">Productos</p>
+        </div>
+        <p className="mt-2 text-lg text-gray-900">Total publicados en la tienda <strong>{totalProducts}</strong></p>
       </Card>
 
-      <Card className="animate-slideUp" style={{ animationDelay: '50ms' }}>
-        <h3>Órdenes</h3>
-        <p>Cantidad: {totalOrders}</p>
+      <Card>
+        <div className="space-y-1">
+          <p className="text-1xl text-black">Ordenes</p>
+        </div>
+        <p className="mt-2 text-lg text-gray-900">Total registradas en el sistema <strong>{totalOrders}</strong></p>
       </Card>
     </div>
   );

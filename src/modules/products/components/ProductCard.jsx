@@ -6,7 +6,7 @@ function QuantitySelector({ value, min = 1, max = 99, onChange }) {
   const inc = () => onChange(Math.min(max, value + 1));
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center relative gap-2">
       <Button
         type="button"
         onClick={dec}
@@ -40,9 +40,14 @@ export default function ProductCard({
 }) {
   const { name, stockQuantity, currentUnitPrice } = product || {};
   const isMaxReached = quantity + inCartQty > stockQuantity;
+  const formatPrice = (value) => Number(value || 0).toLocaleString('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+  });
+  //uso: {formatPrice(currentUnitPrice)}
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       <img
         src={imageSrc}
         alt={name}
@@ -52,7 +57,7 @@ export default function ProductCard({
       <div className="p-4 flex flex-col flex-1">
         <h2 className="text-lg font-semibold">{name}</h2>
         <p className="text-gray-600 mt-1 text-sm sm:text-base">
-          Stock: {stockQuantity} – ${currentUnitPrice}
+          Stock: {stockQuantity} • {formatPrice(currentUnitPrice)}
         </p>
 
         {inCartQty > 0 && (
@@ -61,7 +66,7 @@ export default function ProductCard({
           </p>
         )}
 
-        <div className="flex items-center gap-4 mt-3 flex-1">
+        <div className="flex items-center gap-4 mt-auto pt-3">
           <QuantitySelector
             value={quantity}
             min={1}

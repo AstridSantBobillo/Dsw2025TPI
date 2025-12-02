@@ -64,17 +64,7 @@ function LoginForm({ onSuccess }) {
 
   return (
     <form
-      className="
-        flex flex-col gap-4
-        bg-white
-        p-4
-        rounded-xl
-        w-full
-        max-w-md
-        mx-auto
-        animate-slideUp
-        shadow-lg
-      "
+      className="flex flex-col gap-4 bg-white p-4 rounded-xl w-[90vw] max-w-md mx-auto animate-slideUp shadow-lg sm:w-[99%]"
       onSubmit={handleSubmit(onValid)}
     >
       <Input
@@ -97,7 +87,6 @@ function LoginForm({ onSuccess }) {
           <Button
             type="button"
             onClick={() => navigate('/register')}
-            className="bg-gray-200 text-gray-700 hover:bg-gray-300"
           >
             Registrarse
           </Button>

@@ -6,9 +6,9 @@ function LoginPage() {
       flex
       flex-col
       justify-center
-      h-[100dvh]
+      h-[90dvh]
       bg-neutral-100
-      sm:items-center
+      items-center
     '>
       <LoginForm />
     </div>

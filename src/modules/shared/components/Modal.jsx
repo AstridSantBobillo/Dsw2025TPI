@@ -9,6 +9,7 @@ export default function Modal({ isOpen, onClose, children }) {
         bg-black/40 backdrop-blur-sm
         px-4
         animate-fadeIn
+        w-full h-full
       "
       onClick={onClose}
     >
