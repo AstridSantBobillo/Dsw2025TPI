@@ -114,7 +114,7 @@ function ListProductsUserPage() {
     };
 
     fetchProducts();
-  }, [pageNumber, pageSize, searchTerm, status]);
+  }, [pageNumber, pageSize, searchTerm, status, open]);
 
   useEffect(() => {
     if (total > 0) {

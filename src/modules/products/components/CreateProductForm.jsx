@@ -1,15 +1,10 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-
-// Components
+import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import Input from '../../shared/components/Input';
-
-// Services
 import { createProduct } from '../services/create';
-
-// Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
 import { handleApiError } from '../../shared/helpers/handleApiError';
 
@@ -34,7 +29,6 @@ function CreateProductForm() {
   const [errorBackendMessage, setErrorBackendMessage] = useState('');
   const navigate = useNavigate();
 
-  // Mapea códigos de error del backend a campos del formulario
   const fieldByCode = {
     3001: 'sku',
     3002: 'cui',
@@ -49,9 +43,8 @@ function CreateProductForm() {
   };
 
   const onValid = async (formData) => {
-
     setErrorBackendMessage('');
-    clearErrors(); // por si venían errores previos
+    clearErrors();
 
     try {
       await createProduct(formData);
@@ -62,7 +55,6 @@ function CreateProductForm() {
         showAlert: false,
       });
 
-      // Intentamos mapear errores de campo
       const matched = result.full?.errors?.some((error) => {
         const field = fieldByCode[error.code];
         const message = frontendErrorMessage[error.code] || error.message;
@@ -77,22 +69,19 @@ function CreateProductForm() {
       });
 
       if (!matched) {
-        // Si no se pudo mapear ningún error a campos, ahora sí mostramos mensaje general
         setErrorBackendMessage(result.message);
 
         if (result.status !== 400) {
-          // solo en errores más serios (500, 404, etc.)
           alert(result.message);
         }
       }
     }
-
   };
 
   return (
     <Card className="animate-fadeIn">
       <form
-      className="
+        className="
         flex flex-col gap-4
         bg-white
         p-4
@@ -103,8 +92,8 @@ function CreateProductForm() {
         animate-slideUp
         shadow-lg
       "
-      onSubmit={handleSubmit(onValid)}
-    >
+        onSubmit={handleSubmit(onValid)}
+      >
         <Input
           label='SKU'
           error={errors.sku?.message}
@@ -162,6 +151,6 @@ function CreateProductForm() {
       </form>
     </Card>
   );
-};
+}
 
 export default CreateProductForm;

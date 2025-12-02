@@ -84,7 +84,7 @@ function ListProductsPage() {
     };
 
     fetchProducts();
-  }, [searchTerm, status, pageNumber, pageSize]);
+  }, [searchTerm, status, pageNumber, pageSize, open]);
 
   const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
   const displayedPage = total === 0 ? 0 : pageNumber;
