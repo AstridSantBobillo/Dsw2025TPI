@@ -2,36 +2,32 @@
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 
-function normalizeStatus(raw) {
+const statusStyles = {
+  PENDING: 'bg-yellow-100 text-yellow-700',
+  PROCESSING: 'bg-blue-100 text-blue-700',
+  SHIPPED: 'bg-indigo-100 text-indigo-700',
+  DELIVERED: 'bg-green-100 text-green-700',
+  COMPLETED: 'bg-emerald-100 text-emerald-700',
+  CANCELED: 'bg-red-100 text-red-700',
+  default: 'bg-gray-200 text-gray-700',
+};
+
+const normalizeStatus = (raw) => {
   if (!raw) return '';
 
-  const s = String(raw).toUpperCase().trim();
+  return String(raw).toUpperCase().trim();
+};
 
-  return  s;
-}
-
-function StatusPill({ status }) {
+const StatusPill = ({ status }) => {
   const key = normalizeStatus(status);
-
-  const map = {
-    PENDING:    'bg-yellow-100 text-yellow-700',
-    PROCESSING: 'bg-blue-100 text-blue-700',
-    SHIPPED:    'bg-indigo-100 text-indigo-700',
-    DELIVERED:  'bg-green-100 text-green-700',
-    COMPLETED:  'bg-emerald-100 text-emerald-700',
-    CANCELED:  'bg-red-100 text-red-700',
-    '':         'bg-gray-200 text-gray-700',
-    default:    'bg-gray-200 text-gray-700',
-  };
-
-  const cls = map[key] || map.default;
+  const cls = statusStyles[key] || statusStyles.default;
 
   return (
     <span className={`px-2 py-1 rounded-full text-xs font-medium ${cls}`}>
       {key || '—'}
     </span>
   );
-}
+};
 
 /**
  * Props:
@@ -48,16 +44,14 @@ export default function OrderCard({
   showTotal = false,
   showCreatedAt = false,
 }) {
-  const { id, customerId, name, status, totalAmount, createdAt } = order || {};
+  const { id, name, status, totalAmount, createdAt } = order || {};
 
   return (
     <Card className="animate-slideUp">
-      <div className="flex justify-between items-center w-full gap-3">
-        <div className="min-w-0">
-          <h1>#{id} | {name}</h1>
-
-          {/* Meta: Estado con etiqueta y pill, opcionales total/fecha */}
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-700">
+      <header className="flex items-center justify-between gap-3">
+        <div className="space-y-1 min-w-0">
+          <h1 className="text-lg font-semibold truncate">#{id} | {name}</h1>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
             <span className="text-gray-600">Estado:</span>
             <StatusPill status={status} />
 
@@ -81,7 +75,7 @@ export default function OrderCard({
           )}
           {trailing}
         </div>
-      </div>
+      </header>
     </Card>
   );
 }
