@@ -246,7 +246,13 @@ function ListProductsUserPage() {
         onClose={() => setOpenRegisterModal(false)}
       />
 
-      <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
+      <NoticeModal
+        variant="success"
+        isOpen={isOpen}
+        isClosing={isClosing}
+        message={message}
+        onClose={close}
+      />
 
     </div>
   );

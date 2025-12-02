@@ -253,7 +253,13 @@ function CartPage() {
         onClose={() => close('registerModal')}
       />
 
-      <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
+      <NoticeModal
+        variant="error"
+        isOpen={isOpen}
+        isClosing={isClosing}
+        message={message}
+        onClose={close}
+      />
 
     </div>
   );
