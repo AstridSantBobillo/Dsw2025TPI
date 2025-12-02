@@ -32,7 +32,7 @@ function CartPage() {
   const { user } = useAuth();
   const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
   const { get, increment, decrement, reset } = useDeleteQuantity();
-  const { isOpen, isClosing, message, open : openNotification } = useNoticeModal();
+  const { isOpen, isClosing, message, open : openNotification, close: closeNotification } = useNoticeModal();
 
   const {
     state: modals,
@@ -200,16 +200,16 @@ function CartPage() {
                 <CartCard
                   key={item.sku}
                   item={item}
-                  delQty={get(item.sku)}                          // ← arranca en 1
-                  onDecrease={() => decrement(item.sku)}         // no baja de 1
-                  onIncrease={() => increment(item.sku, item.quantity)} // tope = quantity en carrito
-                  onDelete={(qtyToDelete) => {                 // ⬅️ ahora recibe la cantidad
+                  delQty={get(item.sku)}                          // usedelete arranca en 1
+                  onDecrease={() => decrement(item.sku)}         // usedelete (no baja de 1)
+                  onIncrease={() => increment(item.sku, item.quantity)} // usedelete tope = quantity en carrito
+                  onDelete={(qtyToDelete) => {                 // usedelete ahora recibe la cantidad
                     const remaining = item.quantity - qtyToDelete;
 
                     if (remaining <= 0) {
-                      removeFromCart(item.sku);
+                      removeFromCart(item.sku); //useCart
                     } else {
-                      updateQuantity(item.sku, remaining);
+                      updateQuantity(item.sku, remaining); //useCart
                     }
 
                     reset(item.sku, 1); // volver a 1 para la próxima
@@ -273,7 +273,7 @@ function CartPage() {
         isOpen={isOpen}
         isClosing={isClosing}
         message={message}
-        onClose={close}
+        onClose={closeNotification}
       />
 
     </div>

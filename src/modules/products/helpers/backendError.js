@@ -1,7 +1,7 @@
 const frontendErrorMessage = {
   // Productos (3000s)
-  3001: "Por favor verifique SKU. El formato soportado es 'SKU-XXXX' seguido de 3 a 10 dígitos",
-  3002: "Por favor verifique el codigo interno. El formato soportado es 'INT-XXXX' seguido de 3 a 10 dígitos",
+  3001: "El formato soportado es 'SKU-XXX'",
+  3002: "El formato soportado es 'INT-XXX'",
   3003: 'El nombre es obligatorio entre 3 y 100 dígitos ',
   3004: 'El nombre tiene un formato inválido',
   3005: 'La descripción debe tener entre 10 y 500 caracteres',
