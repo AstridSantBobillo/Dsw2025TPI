@@ -15,23 +15,27 @@ function useDashboardTotals() {
     const fetchTotals = async () => {
       try {
         const { data: prodData } = await getProducts('', '', 1, 1);
+
         if (prodData) setTotalProducts(prodData.total);
       } catch (err) {
         const { message } = handleApiError(err, {
           frontendMessages: productErrors,
           showAlert: false,
         });
+
         open(message);
       }
 
       try {
         const { data: orderData } = await getOrders('', '', 1, 20);
+
         if (orderData) setTotalOrders(orderData.totalCount);
       } catch (err) {
         const { message } = handleApiError(err, {
           frontendMessages: orderErrors,
           showAlert: false,
         });
+
         open(message);
       }
     };

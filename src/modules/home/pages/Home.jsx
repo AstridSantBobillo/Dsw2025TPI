@@ -6,7 +6,7 @@ import useDashboardTotals from '../hooks/useDashboardTotals';
 
 function Home() {
 
-  const { totalProducts, totalOrders } = useDashboardTotals()
+  const { totalProducts, totalOrders } = useDashboardTotals();
 
   return (
     <div className="

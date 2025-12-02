@@ -24,9 +24,9 @@ function ListProductsUserPage() {
 
   const navigate = useNavigate();
 
-  const {inputValue, searchTerm, setInputValue, commit, clear} = useSearchState('');
+  const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
 
-  const {products, total, loading, pageNumber, pageSize, setPageNumber, setPageSize} = useUserProducts(searchTerm);
+  const { products, total, loading, pageNumber, pageSize, setPageNumber, setPageSize } = useUserProducts(searchTerm);
 
   const { cart, addToCart } = useCart();
   const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
@@ -38,6 +38,7 @@ function ListProductsUserPage() {
   const [openRegisterModal, setOpenRegisterModal] = useState(false);
 
   const { isOpen, isClosing, message, open, close } = useNoticeModal();
+
   useModalEvents(setOpenLoginModal, setOpenRegisterModal);
 
   const realTotalPages = Math.ceil(total / pageSize);

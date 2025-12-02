@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Hooks
 import useSearchState from '../../shared/hooks/useSearchState';
 import useNoticeModal from '../../shared/hooks/useNoticeModal';
+import useProductList from '../hooks/useProductsList';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -12,13 +13,6 @@ import SearchBar from '../../shared/components/SearchBar';
 import Pagination from '../../shared/components/Pagination';
 import AdminProductCard from '../../products/components/AdminProductCard';
 import NoticeModal from '../../shared/components/NoticeModal';
-
-// Services
-import { getProducts } from '../services/list';
-
-//Helpers
-import { handleApiError } from '../../shared/helpers/handleApiError';
-import { frontendErrorMessage } from '../helpers/backendError';
 
 const productStatus = {
   ALL: 'all',
@@ -35,56 +29,14 @@ function ListProductsPage() {
   const [ pageNumber, setPageNumber ] = useState(1);
   const [ pageSize, setPageSize ] = useState(10);
 
-  const [ total, setTotal ] = useState(0);
-  const [ products, setProducts ] = useState([]);
+  const { isOpen, isClosing, message, close } = useNoticeModal();
 
-  const [loading, setLoading] = useState(false);
-
-  const { isOpen, isClosing, message, open, close } = useNoticeModal();
-
-  const normalizeProductsResponse = (raw) => {
-    if (!raw) return { total: 0, productItems: [] };            // 204 / null
-
-    if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
-
-    const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
-    const productItems =
-    Array.isArray(raw.productItems) ? raw.productItems :
-      Array.isArray(raw.items)        ? raw.items        :
-        Array.isArray(raw.results)      ? raw.results      : [];
-
-    return { total, productItems };
-  };
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await getProducts(searchTerm, status, pageNumber, pageSize);
-
-        if (error) throw error;
-
-        const norm = normalizeProductsResponse(data);
-
-        setTotal(norm.total);
-        setProducts(norm.productItems);
-      } catch (error) {
-        console.error(error);
-        setTotal(0);
-        setProducts([]);
-
-        handleApiError(error, {
-          frontendMessages: frontendErrorMessage,
-          setErrorMessage: open,
-          showAlert: false,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, [searchTerm, status, pageNumber, pageSize]);
+  const { products, total, loading } = useProductList({
+    searchTerm,
+    status,
+    pageNumber,
+    pageSize,
+  });
 
   const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
   const displayedPage = total === 0 ? 0 : pageNumber;

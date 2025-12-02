@@ -30,6 +30,7 @@ export default function useOrderList({ searchTerm, status, pageNumber, pageSize 
       if (error) throw error;
 
       const norm = normalizeOrdersResponse(data);
+
       setTotal(norm.totalCount);
       setOrders(norm.items);
     } catch (err) {
@@ -37,6 +38,7 @@ export default function useOrderList({ searchTerm, status, pageNumber, pageSize 
         frontendMessages: frontendErrorMessage,
         showAlert: false,
       });
+
       open(message);
       setTotal(0);
       setOrders([]);

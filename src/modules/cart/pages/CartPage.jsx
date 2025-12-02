@@ -30,24 +30,24 @@ function CartPage() {
   const { isOpen, isClosing, message, open : openNotification } = useNoticeModal();
 
   const [openCartMenu, setOpenCartMenu] = useState(false);
-const [openLoginModal, setOpenLoginModal] = useState(false);
-const [openRegisterModal, setOpenRegisterModal] = useState(false);
-useModalEvents(setOpenLoginModal, setOpenRegisterModal);
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [openRegisterModal, setOpenRegisterModal] = useState(false);
 
+  useModalEvents(setOpenLoginModal, setOpenRegisterModal);
 
-const { sendOrder } = useOrderSender({ user, cart, clearCart, openNotification, openModal: open });
+  const { sendOrder } = useOrderSender({ user, cart, clearCart, openNotification, openModal: open });
 
-const { handleDelete } = useCartItemHandlers({ cart, removeFromCart, updateQuantity, resetDeleteQty: reset, openNotification });
+  const { handleDelete } = useCartItemHandlers({ cart, removeFromCart, updateQuantity, resetDeleteQty: reset, openNotification });
 
-const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
-const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
+  const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
+  const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
 
-const handleCheckout = () => sendOrder();
+  const handleCheckout = () => sendOrder();
 
-const handleLoginSuccess = () => {
-setOpenLoginModal(false);
-sendOrder();
-};
+  const handleLoginSuccess = () => {
+    setOpenLoginModal(false);
+    sendOrder();
+  };
 
   if (cart.length === 0) {
     return (
@@ -138,9 +138,9 @@ sendOrder();
                 <CartCard
                   key={item.sku}
                   item={item}
-                  delQty={get(item.sku)}                          
-                  onDecrease={() => decrement(item.sku)}         
-                  onIncrease={() => increment(item.sku, item.quantity)} 
+                  delQty={get(item.sku)}
+                  onDecrease={() => decrement(item.sku)}
+                  onIncrease={() => increment(item.sku, item.quantity)}
                   onDelete={(qtyToDelete) => handleDelete(item, qtyToDelete)}
                 />
               );

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 //Hooks
 import useSearchState from '../../shared/hooks/useSearchState';
-import useNoticeModal from '../../shared/hooks/useNoticeModal';
 import useOrderList from '../hooks/useOrderList';
 
 // Components
@@ -10,13 +9,6 @@ import Card from '../../shared/components/Card';
 import SearchBar from '../../shared/components/SearchBar';
 import Pagination from '../../shared/components/Pagination';
 import OrderCard from '../../orders/components/OrderCard';
-
-// Services
-import { getOrders } from '../services/listServices';
-
-//Helpers
-import { handleApiError } from '../../shared/helpers/handleApiError';
-import { frontendErrorMessage } from '../helpers/backendError';
 
 const orderStatus = {
   ALL: '',
@@ -36,11 +28,11 @@ function ListOrdersPage() {
   const [pageSize, setPageSize] = useState(10);
 
   const { orders, total, loading } = useOrderList({
-      searchTerm,
-      status,
-      pageNumber,
-      pageSize,
-    });
+    searchTerm,
+    status,
+    pageNumber,
+    pageSize,
+  });
 
   const realTotalPages = Math.ceil((Number(total) || 0) / (Number(pageSize) || 1));
   const displayedPage = total === 0 ? 0 : pageNumber;

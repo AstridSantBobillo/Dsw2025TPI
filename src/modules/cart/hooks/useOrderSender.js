@@ -3,53 +3,50 @@ import { createOrder } from '../../orders/services/createOrder';
 import { handleApiError } from '../../shared/helpers/handleApiError';
 import { frontendErrorMessage as orderErrorMessages } from '../../orders/helpers/backendError';
 
-
 export default function useOrderSender({ user, cart, clearCart, openNotification, openModal }) {
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
+  const sendOrder = async () => {
+    if (!user) {
+      openModal('loginModal');
 
-const sendOrder = async () => {
-if (!user) {
-openModal('loginModal');
-return;
-}
+      return;
+    }
 
+    if (!user?.customerId) {
+      openNotification('Solo los clientes pueden realizar pedidos.');
 
-if (!user?.customerId) {
-openNotification('Solo los clientes pueden realizar pedidos.');
-return;
-}
+      return;
+    }
 
+    try {
+      const orderData = {
+        customerId: user.customerId,
+        shippingAddress: 'Sin especificar',
+        billingAddress: 'Sin especificar',
+        notes: '',
+        orderItems: cart.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+      };
 
-try {
-const orderData = {
-customerId: user.customerId,
-shippingAddress: 'Sin especificar',
-billingAddress: 'Sin especificar',
-notes: '',
-orderItems: cart.map((item) => ({
-productId: item.productId,
-quantity: item.quantity,
-})),
-};
+      const { error } = await createOrder(orderData);
 
+      if (error) throw error;
 
-const { error } = await createOrder(orderData);
-if (error) throw error;
+      clearCart();
+      navigate('/');
+    } catch (err) {
+      const result = handleApiError(err, {
+        frontendMessages: orderErrorMessages,
+        showAlert: false,
+        setErrorMessage: openNotification,
+      });
 
+      openNotification(result.message);
+    }
+  };
 
-clearCart();
-navigate('/');
-} catch (err) {
-const result = handleApiError(err, {
-frontendMessages: orderErrorMessages,
-showAlert: false,
-setErrorMessage: openNotification,
-});
-openNotification(result.message);
-}
-};
-
-
-return { sendOrder };
+  return { sendOrder };
 }

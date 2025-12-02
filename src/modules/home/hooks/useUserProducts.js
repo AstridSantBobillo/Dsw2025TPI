@@ -14,13 +14,14 @@ export default function useUserProducts(searchTerm, status = 'enabled') {
 
   const normalizeProductsResponse = (raw) => {
     if (!raw) return { total: 0, productItems: [] };
+
     if (Array.isArray(raw)) return { total: raw.length, productItems: raw };
 
     const total = Number(raw.total ?? raw.totalCount ?? raw.count ?? 0) || 0;
     const productItems =
       Array.isArray(raw.productItems) ? raw.productItems :
-      Array.isArray(raw.items) ? raw.items :
-      Array.isArray(raw.results) ? raw.results : [];
+        Array.isArray(raw.items) ? raw.items :
+          Array.isArray(raw.results) ? raw.results : [];
 
     return { total, productItems };
   };
@@ -30,9 +31,11 @@ export default function useUserProducts(searchTerm, status = 'enabled') {
       try {
         setLoading(true);
         const { data, error } = await getClientProducts(searchTerm, status, pageNumber, pageSize);
+
         if (error) throw error;
 
         const norm = normalizeProductsResponse(data);
+
         setProducts(norm.productItems);
         setTotal(norm.total);
       } catch (error) {
@@ -40,6 +43,7 @@ export default function useUserProducts(searchTerm, status = 'enabled') {
           frontendMessages: frontendErrorMessage,
           showAlert: false,
         });
+
         open(result.message);
         setProducts([]);
         setTotal(0);
