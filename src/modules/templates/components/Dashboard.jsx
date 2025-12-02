@@ -21,16 +21,18 @@ function Dashboard() {
 
   const getLinkStyles = ({ isActive }) => (
     `
-      pl-4 w-full block  pt-4 pb-4 rounded-4xl transition hover:bg-gray-100
-      ${isActive
-      ? 'bg-purple-200 hover:bg-purple-100 '
-      : ''
-    }
+      w-full block
+      pl-4 pr-3 py-3
+      text-base
+      rounded-xl
+      transition
+      hover:bg-gray-100 active:bg-gray-200
+      ${isActive ? 'bg-purple-200 hover:bg-purple-100' : ''}
     `
   );
 
   const renderLogoutButton = (mobile = false) => (
-    <Button className={`${mobile ? 'block w-full sm:hidden' :  'hidden sm:block' }`} onClick={logout}>Cerrar sesión</Button>
+    <Button className={`${mobile ? 'block w-full sm:hidden' :  'hidden sm:block mr-[1%] px-3 py-1' }`} onClick={logout}>Cerrar sesión</Button>
   );
 
   return (
@@ -40,7 +42,6 @@ function Dashboard() {
         grid
         grid-cols-1
         grid-rows-[auto_1fr]
-
         sm:gap-3
         sm:grid-cols-[256px_1fr]
         sm:rounded-lg
@@ -53,25 +54,21 @@ function Dashboard() {
           items-center
           justify-between
           p-4
+          m-2
           shadow
           rounded
           bg-white
-
           sm:col-span-2
         "
       >
-        <span>Mi Dashboard</span>
+        <span className='ml-[2%]'>Mi Dashboard</span>
         {renderLogoutButton()}
-        <button
-          className="
-            bg-transparent
-            border-none
-            shadow-none
-
-            sm:hidden
-          "
+        <Button
+          className="sm:hidden h-15 w-15 p-0"
           onClick={() => setOpenMenu(!openMenu)}
-        >{ openMenu ? <span>&#215;</span> : <span>&#9776;</span>}</button>
+        >
+          { openMenu ? <span className='text-3xl'>&#215;</span> : <span className='text-3xl'>&#9776;</span>}
+        </Button>
       </header>
       <aside
         className={`
@@ -87,7 +84,10 @@ function Dashboard() {
           flex
           flex-col
           justify-between
-
+          animate-slideRight
+          transition-left
+          duration-300
+          z-50
           sm:relative
           sm:left-0
         `}

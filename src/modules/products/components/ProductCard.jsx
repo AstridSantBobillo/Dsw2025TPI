@@ -1,7 +1,7 @@
 // Components
 import Button from '../../shared/components/Button';
 
-const QuantitySelector = ({ value, min = 1, max = 99, onChange }) => {
+function QuantitySelector({ value, min = 1, max = 99, onChange }) {
   const dec = () => onChange(Math.max(min, value - 1));
   const inc = () => onChange(Math.min(max, value + 1));
 
@@ -13,7 +13,7 @@ const QuantitySelector = ({ value, min = 1, max = 99, onChange }) => {
         disabled={value <= min}
         className="px-2 py-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        -
+        ➖
       </Button>
 
       <span className="w-8 text-center text-lg font-semibold">{value}</span>
@@ -24,11 +24,11 @@ const QuantitySelector = ({ value, min = 1, max = 99, onChange }) => {
         disabled={value >= max}
         className="px-2 py-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        +
+        ➕
       </Button>
     </div>
   );
-};
+}
 
 export default function ProductCard({
   product,
@@ -44,9 +44,10 @@ export default function ProductCard({
     style: 'currency',
     currency: 'ARS',
   });
+  //uso: {formatPrice(currentUnitPrice)}
 
   return (
-    <div className="flex flex-col h-full rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full">
       <img
         src={imageSrc}
         alt={name}

@@ -8,7 +8,7 @@ function LoginPage() {
       justify-center
       h-[90dvh]
       bg-neutral-100
-      sm:items-center
+      items-center
     '>
       <LoginForm />
     </div>

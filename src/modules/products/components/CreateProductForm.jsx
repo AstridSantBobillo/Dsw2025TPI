@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 // Components
 import Button from '../../shared/components/Button';
-import Card from '../../shared/components/Card';
 import Input from '../../shared/components/Input';
 
 // Services
@@ -113,74 +112,76 @@ function CreateProductForm() {
   };
 
   return (
-    <Card className="animate-fadeIn">
-      <form
-        className='
-          flex
-          flex-col
-          gap-20
-          p-8
+    <form
+      className="
+        flex flex-col gap-4
+        bg-white
+        p-4
+        rounded-xl
+        w-full
+        max-w-md
+        mx-auto
+        animate-slideUp
+        shadow-lg
+      "
+      onSubmit={handleSubmit(onValid)}
+    >
+      <Input
+        label='SKU'
+        error={errors.sku?.message}
+        {...register('sku', {
+          required: 'SKU es requerido',
+        })}
+      />
+      <Input
+        label='Código Único'
+        error={errors.cui?.message}
+        {...register('cui', {
+          required: 'Código Único es requerido',
+        })}
+      />
+      <Input
+        label='Nombre'
+        error={errors.name?.message}
+        {...register('name', {
+          required: 'Nombre es requerido',
+        })}
+      />
+      <Input
+        label='Descripción'
+        error={errors.description?.message}
+        {...register('description', {
+          required: 'Descripción es requerida',
+        })}
+      />
+      <Input
+        label='Precio'
+        error={errors.price?.message}
+        type='number'
+        {...register('price', {
+          min: {
+            value: 0,
+            message: 'No puede tener un precio negativo',
+          },
+        })}
+      />
+      <Input
+        label='Stock'
+        error={errors.stock?.message}
+        {...register('stock', {
+          min: {
+            value: 0,
+            message: 'No puede tener un stock negativo',
+          },
+        })}
+      />
 
-          sm:gap-4
-        '
-        onSubmit={handleSubmit(onValid)}
-      >
-        <Input
-          label='SKU'
-          error={errors.sku?.message}
-          {...register('sku', {
-            required: 'SKU es requerido',
-          })}
-        />
-        <Input
-          label='Código Único'
-          error={errors.cui?.message}
-          {...register('cui', {
-            required: 'Código Único es requerido',
-          })}
-        />
-        <Input
-          label='Nombre'
-          error={errors.name?.message}
-          {...register('name', {
-            required: 'Nombre es requerido',
-          })}
-        />
-        <Input
-          label='Descripción'
-          error={errors.description?.message}
-          {...register('description', {
-            required: 'Descripción es requerida',
-          })}
-        />
-        <Input
-          label='Precio'
-          error={errors.price?.message}
-          type='number'
-          {...register('price', {
-            min: {
-              value: 0,
-              message: 'No puede tener un precio negativo',
-            },
-          })}
-        />
-        <Input
-          label='Stock'
-          error={errors.stock?.message}
-          {...register('stock', {
-            min: {
-              value: 0,
-              message: 'No puede tener un stock negativo',
-            },
-          })}
-        />
-        <div className='sm:text-end'>
-          <Button type='submit' className='w-full sm:w-fit'>Crear Producto</Button>
-        </div>
+      <div className="flex flex-col gap-4">
+        <Button type='submit'>Crear Producto</Button>
+      </div>
 
-        {errorBackendMessage && <span className='text-red-500'>{errorBackendMessage}</span>}
-      </form>
-    </Card>
+      {errorBackendMessage && <span className='text-red-500'>{errorBackendMessage}</span>}
+    </form>
   );
 };
 
