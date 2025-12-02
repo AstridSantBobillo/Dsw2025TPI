@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Hooks
 import useAuth from '../../auth/hook/useAuth';
 import { useCart } from '../hooks/useCart';
 import { useDeleteQuantity } from '../../shared/hooks/useDeleteQuantity';
-import { useToggleMap } from '../../shared/hooks/useToggleMap';
 import useNoticeModal from '../../shared/hooks/useNoticeModal';
 import useSearchState from '../../shared/hooks/useSearchState';
+import useModalEvents from '../../shared/hooks/useModalEvents';
+import useOrderSender from '../hooks/useOrderSender';
+import useCartItemHandlers from '../hooks/useCartItemHandlers';
 
 // Components
 import Button from '../../shared/components/Button';
@@ -19,13 +21,6 @@ import RegisterModal from '../../auth/components/RegisterModal';
 import NoticeModal from '../../shared/components/NoticeModal';
 import CartCard from '../components/CartCard';
 
-// Services
-import { createOrder } from '../../orders/services/createOrder';
-
-// Helpers
-import { handleApiError } from '../../shared/helpers/handleApiError';
-import { frontendErrorMessage as orderErrorMessages } from '../../orders/helpers/backendError';
-
 function CartPage() {
   const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, updateQuantity } = useCart();
@@ -34,82 +29,25 @@ function CartPage() {
   const { get, increment, decrement, reset } = useDeleteQuantity();
   const { isOpen, isClosing, message, open : openNotification } = useNoticeModal();
 
-  const {
-    state: modals,
-    open,
-    close,
-  } = useToggleMap({
-    cartMenu: false,
-    loginModal: false,
-    registerModal: false,
-  });
+  const [openCartMenu, setOpenCartMenu] = useState(false);
+const [openLoginModal, setOpenLoginModal] = useState(false);
+const [openRegisterModal, setOpenRegisterModal] = useState(false);
+useModalEvents(setOpenLoginModal, setOpenRegisterModal);
 
-  const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
 
-  const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
+const { sendOrder } = useOrderSender({ user, cart, clearCart, openNotification, openModal: open });
 
-  useEffect(() => {
-    const openLogin = () => open('loginModal');
-    const openRegister = () => open('registerModal');
+const { handleDelete } = useCartItemHandlers({ cart, removeFromCart, updateQuantity, resetDeleteQty: reset, openNotification });
 
-    window.addEventListener('open-login', openLogin);
-    window.addEventListener('open-register', openRegister);
+const totalItems = cart.reduce((acc, p) => acc + p.quantity, 0);
+const totalAmount = cart.reduce((acc, p) => acc + p.quantity * p.currentUnitPrice, 0);
 
-    return () => {
-      window.removeEventListener('open-login', openLogin);
-      window.removeEventListener('open-register', openRegister);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+const handleCheckout = () => sendOrder();
 
-  const sendOrder = async () => {
-    if (!user) {
-      open('loginModal');
-
-      return;
-    }
-
-    if (!user?.customerId) {
-      openNotification('Solo los clientes pueden realizar pedidos.');
-
-      return;
-    }
-
-    try {
-      const orderData = {
-        customerId: user.customerId,
-        shippingAddress: 'Sin especificar',
-        billingAddress: 'Sin especificar',
-        notes: '',
-        orderItems: cart.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-      };
-
-      const { error } = await createOrder(orderData);
-
-      if (error) throw error;
-
-      clearCart();
-      navigate('/');
-    } catch (err) {
-      const result = handleApiError(err, {
-        frontendMessages: orderErrorMessages,
-        showAlert: false,
-        setErrorMessage: openNotification,
-      });
-
-      openNotification(result.message);
-    }
-  };
-
-  const handleCheckout = () => sendOrder();
-
-  const handleLoginSuccess = () => {
-    close('loginModal');
-    sendOrder();
-  };
+const handleLoginSuccess = () => {
+setOpenLoginModal(false);
+sendOrder();
+};
 
   if (cart.length === 0) {
     return (
@@ -158,30 +96,30 @@ function CartPage() {
         onGoProducts={() => navigate('/')}
         onGoHome={() => navigate('/')}
         onGoCart={null}
-        onOpenLogin={() => open('loginModal')}
-        onOpenRegister={() => open('registerModal')}
-        onOpenMobileMenu={() => open('cartMenu')}
+        onOpenLogin={() => setOpenLoginModal(true)}
+        onOpenRegister={() => setOpenRegisterModal(true)}
+        onOpenMobileMenu={() => setOpenCartMenu(true)}
         totalItems={totalItems}
       />
 
       {/* Mobile menu */}
       <MobileSideMenu
-        isOpen={modals.cartMenu}
+        isOpen={openCartMenu}
         title="Menú"
-        onClose={() => close('cartMenu')}
+        onClose={() => setOpenCartMenu(false)}
         onGoProducts={() => {
-          close('cartMenu');
+          setOpenCartMenu(false);
           navigate('/');
         }}
         onGoCart={null}
         totalItems={totalItems}
         onOpenLogin={() => {
-          close('cartMenu');
-          open('loginModal');
+          setOpenCartMenu(false);
+          setOpenLoginModal(true);
         }}
         onOpenRegister={() => {
-          close('cartMenu');
-          open('registerModal');
+          setOpenCartMenu(false);
+          setOpenRegisterModal(true);
         }}
       />
 
@@ -200,21 +138,10 @@ function CartPage() {
                 <CartCard
                   key={item.sku}
                   item={item}
-                  delQty={get(item.sku)}                          // ← arranca en 1
-                  onDecrease={() => decrement(item.sku)}         // no baja de 1
-                  onIncrease={() => increment(item.sku, item.quantity)} // tope = quantity en carrito
-                  onDelete={(qtyToDelete) => {                 // ⬅️ ahora recibe la cantidad
-                    const remaining = item.quantity - qtyToDelete;
-
-                    if (remaining <= 0) {
-                      removeFromCart(item.sku);
-                    } else {
-                      updateQuantity(item.sku, remaining);
-                    }
-
-                    reset(item.sku, 1); // volver a 1 para la próxima
-                    openNotification(`Se eliminó "${item.name}" del carrito.`);
-                  }}
+                  delQty={get(item.sku)}                          
+                  onDecrease={() => decrement(item.sku)}         
+                  onIncrease={() => increment(item.sku, item.quantity)} 
+                  onDelete={(qtyToDelete) => handleDelete(item, qtyToDelete)}
                 />
               );
             })
@@ -259,13 +186,13 @@ function CartPage() {
 
       {/* Modals */}
       <LoginModal
-        isOpen={modals.loginModal}
-        onClose={() => close('loginModal')}
+        isOpen={openLoginModal}
+        onClose={() => setOpenLoginModal(false)}
         onSuccess={handleLoginSuccess}
       />
       <RegisterModal
-        isOpen={modals.registerModal}
-        onClose={() => close('registerModal')}
+        isOpen={openRegisterModal}
+        onClose={() => setOpenRegisterModal(false)}
       />
 
       <NoticeModal isOpen={isOpen} isClosing={isClosing} message={message} onClose={close} />
