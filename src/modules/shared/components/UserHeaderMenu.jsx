@@ -41,7 +41,7 @@ export default function UserHeaderMenu({
 
             {onGoCart && (
               <Button onClick={onGoCart} className="px-3 py-2 text-sm">
-                Carrito de compras ({totalItems})
+                Carrito ({totalItems})
               </Button>
             )}
           </div>
@@ -64,8 +64,8 @@ export default function UserHeaderMenu({
           <div className="hidden sm:flex items-center gap-2">
             {!isAuthenticated ? (
               <>
-                <Button onClick={onOpenLogin} className="px-3 py-2 text-sm">Iniciar Sesión</Button>
-                <Button onClick={onOpenRegister} className="px-3 py-2 text-sm">Registrarse</Button>
+                <Button onClick={onOpenLogin} className="px-3 py-2 text-xs sm:text-sm">Iniciar Sesión</Button>
+                <Button onClick={onOpenRegister} className="px-3 py-2 text-xs sm:text-sm">Registrarse</Button>
               </>
             ) : (
               <>

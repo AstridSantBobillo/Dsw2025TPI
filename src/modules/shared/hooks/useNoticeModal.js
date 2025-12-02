@@ -1,26 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export default function useNoticeModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [message, setMessage] = useState('');
 
-  const open = (msg) => {
+  const open = useCallback((msg) => {
     setMessage(msg || '');
     setIsOpen(true);
     setIsClosing(false);
-  };
+  }, []);
 
-  const close = () => {
+  const close = useCallback(() => {
     setIsClosing(true);
     setTimeout(() => {
       setIsOpen(false);
       setMessage('');
       setIsClosing(false);
-    }, 300); // duración de fadeOut
-  };
+    }, 300);
+  }, []);
 
-  // Cierra automáticamente a los 5s
   useEffect(() => {
     if (!isOpen) return;
 
@@ -29,7 +28,7 @@ export default function useNoticeModal() {
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [isOpen]);
+  }, [isOpen, close]);
 
   return { isOpen, isClosing, message, open, close };
 }

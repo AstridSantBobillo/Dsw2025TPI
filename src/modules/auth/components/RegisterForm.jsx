@@ -106,7 +106,7 @@ function RegisterForm({ onSuccess, fixedRole }) {
 
   return (
     <form
-      className="flex flex-col gap-4 bg-white p-4 rounded-xl w-[90vw] max-w-md mx-auto animate-slideUp shadow-lg sm:w-[99%]"
+      className="flex flex-col gap-4 bg-white p-4 rounded-xl w-[98%] max-w-md mx-auto animate-slideUp shadow-lg sm:w-[99%]"
       onSubmit={handleSubmit(onValid)}
     >
       <Input
