@@ -50,7 +50,8 @@ export default function OrderCard({
     <Card className="animate-slideUp">
       <header className="flex items-center justify-between gap-3">
         <div className="space-y-1 min-w-0">
-          <h1 className="text-lg font-semibold truncate">#{id} | {name}</h1>
+          <h1 className="text-lg font-semibold break-words">{name}</h1>
+          {name && <p className="text-base text-gray-800 break-words">#{id}</p>}
           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
             <span className="text-gray-600">Estado:</span>
             <StatusPill status={status} />

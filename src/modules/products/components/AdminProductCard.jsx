@@ -32,7 +32,8 @@ export default function AdminProductCard({
     <Card className="animate-slideUp">
       <header className="flex justify-between items-center w-full gap-3">
         <div className="min-w-0 space-y-1">
-          <h1 className="text-lg font-semibold truncate">{sku} - {name}</h1>
+          <h1 className="text-lg font-semibold break-words">{name}</h1>
+          {name && <p className="text-base text-gray-800 break-words">#{sku}</p>}
           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-700">
             <span>Stock: {stockQuantity}</span>
             <span className="text-gray-600">|</span>

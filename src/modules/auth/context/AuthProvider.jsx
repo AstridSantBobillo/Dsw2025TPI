@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from 'react';
 import NoticeModal from '../../shared/components/NoticeModal';
-import useTokenExpiryNotice from '../../auth/hooks/useTokenExpiryNotice';
+import useTokenExpiryNotice from '../../auth/hook/useTokenExpiryNotice';
 
 // Services
 import { login } from '../services/login';
