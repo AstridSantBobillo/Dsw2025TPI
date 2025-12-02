@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 //Hooks
 import useSearchState from '../../shared/hooks/useSearchState';
+import useNoticeModal from '../../shared/hooks/useNoticeModal';
 
 // Components
-import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import SearchBar from '../../shared/components/SearchBar';
 import Pagination from '../../shared/components/Pagination';
@@ -13,6 +12,10 @@ import OrderCard from '../../orders/components/OrderCard';
 
 // Services
 import { getOrders } from '../services/listServices';
+
+//Helpers
+import { handleApiError } from '../../shared/helpers/handleApiError';
+import { frontendErrorMessage } from '../helpers/backendError';
 
 const orderStatus = {
   ALL: '',
@@ -25,7 +28,6 @@ const orderStatus = {
 };
 
 function ListOrdersPage() {
-  const navigate = useNavigate();
 
   const { inputValue, searchTerm, setInputValue, commit, clear } = useSearchState('');
   const [status, setStatus] = useState(orderStatus.ALL);
@@ -57,6 +59,8 @@ function ListOrdersPage() {
     return { totalCount, items };
   };
 
+  const { open } = useNoticeModal();
+
   const fetchOrders = async () => {
     try {
       setLoading(true);
@@ -68,8 +72,13 @@ function ListOrdersPage() {
 
       setTotal(norm.totalCount);
       setOrders(norm.items);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      const { message } = handleApiError(err, {
+        frontendMessages: frontendErrorMessage,
+        showAlert: false,
+      });
+
+      open(message);
       setTotal(0);
       setOrders([]);
     } finally {

@@ -12,6 +12,7 @@ import Button from '../../shared/components/Button';
 
 //Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
+import { handleApiError } from '../../shared/helpers/handleApiError';
 
 function RegisterForm({ onSuccess, fixedRole }) {
 
@@ -52,8 +53,9 @@ function RegisterForm({ onSuccess, fixedRole }) {
       let hasFieldMatch = false;
 
       (backendError?.errors || []).forEach((err) => {
-        const field = fieldByCode[err.code];
-        const message = frontendErrorMessage[err.code] || err.message;
+        const code = err.code ?? null;
+        const field = fieldByCode[code];
+        const message = frontendErrorMessage[code] || err.message;
 
         if (field && message) {
           const fieldList = Array.isArray(field) ? field : [field];
@@ -75,11 +77,11 @@ function RegisterForm({ onSuccess, fixedRole }) {
         const matched = setFieldErrorsFromBackend(error);
 
         if (!matched) {
-          setErrorMessage(
-            error.frontendErrorMessage
-            || error.backendMessage
-            || 'No se pudo completar el registro',
-          );
+          handleApiError(error, {
+            frontendMessages: frontendErrorMessage,
+            setErrorMessage,
+            showAlert: false,
+          });
         }
 
         return;
@@ -89,24 +91,17 @@ function RegisterForm({ onSuccess, fixedRole }) {
 
       navigate('/login');
     } catch (err) {
-      const backendError = err.backendError;
+      const result = handleApiError(err, {
+        frontendMessages: frontendErrorMessage,
+        setErrorMessage,
+        showAlert: true,
+      });
 
-      if (backendError) {
-        const matched = setFieldErrorsFromBackend(backendError);
-
-        if (!matched) {
-          setErrorMessage(
-            backendError.frontendErrorMessage
-            || backendError.backendMessage
-            || 'Llame a soporte',
-          );
-        }
-
-        return;
+      if (result.full?.errors?.length > 0) {
+        setFieldErrorsFromBackend(result.full);
       }
-
-      setErrorMessage('Llame a soporte');
     }
+
   };
 
   return (

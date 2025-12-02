@@ -12,6 +12,7 @@ const frontendErrorMessage = {
   // Unique constraints (BadRequest 9000s)
   9102: 'El SKU ya está en uso',
   9103: 'El código interno ya está en uso',
+  9601: 'No hay productos disponibles con los filtros seleccionados',
 };
 
 export {

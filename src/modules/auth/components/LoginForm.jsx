@@ -12,6 +12,7 @@ import Button from '../../shared/components/Button';
 
 //Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
+import { handleApiError } from '../../shared/helpers/handleApiError';
 
 function LoginForm({ onSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
@@ -27,21 +28,24 @@ function LoginForm({ onSuccess }) {
   const { singin } = useAuth();
 
   const onValid = async (formData) => {
+    setErrorMessage('');
+    setErrorMessages([]);
+
     try {
       const { error } = await singin(formData.username, formData.password);
 
       if (error) {
-        const detailedMessages = (error.errors || [])
-          .map((err) => frontendErrorMessage[err.code] || err.message)
-          .filter(Boolean);
+        const { full } = handleApiError(error, {
+          frontendMessages: frontendErrorMessage,
+          setErrorMessage,
+          showAlert: false,
+        });
+
+        const detailedMessages = (full?.errors || []).map(
+          (err) => frontendErrorMessage[err.code] || err.message,
+        ).filter(Boolean);
 
         setErrorMessages(detailedMessages);
-        setErrorMessage(
-          error.frontendErrorMessage
-          || detailedMessages[0]
-          || error.backendMessage
-          || 'Llame a soporte',
-        );
 
         return;
       }
@@ -49,26 +53,12 @@ function LoginForm({ onSuccess }) {
       if (onSuccess) return onSuccess();
 
       navigate('/admin/home');
-    } catch (error) {
-      const backendError = error.backendError;
-
-      if (backendError) {
-        const detailedMessages = (backendError.errors || [])
-          .map((e) => frontendErrorMessage[e.code] || e.message)
-          .filter(Boolean);
-
-        setErrorMessages(detailedMessages);
-        setErrorMessage(
-          backendError.frontendErrorMessage
-          || detailedMessages[0]
-          || backendError.backendMessage
-          || 'Llame a soporte',
-        );
-
-        return;
-      }
-
-      setErrorMessage('Llame a soporte');
+    } catch (err) {
+      handleApiError(err, {
+        frontendMessages: frontendErrorMessage,
+        setErrorMessage,
+        showAlert: true, // mostrar alert si falla de forma inesperada
+      });
     }
   };
 

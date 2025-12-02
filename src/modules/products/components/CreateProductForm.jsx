@@ -12,6 +12,7 @@ import { createProduct } from '../services/create';
 
 // Helpers
 import { frontendErrorMessage } from '../helpers/backendError';
+import { handleApiError } from '../../shared/helpers/handleApiError';
 
 function CreateProductForm() {
   const {
@@ -48,33 +49,6 @@ function CreateProductForm() {
     9103: 'cui',
   };
 
-  // Aplica errores de backend a campos; devuelve true si mapeó alguno
-  const setFieldErrorsFromBackend = (backendError) => {
-    let hasFieldMatch = false;
-
-    const apply = (code, messageFallback) => {
-      const field = fieldByCode[code];
-      const message = frontendErrorMessage[code] || messageFallback;
-
-      if (field && message) {
-        setError(field, { type: 'backend', message });
-        hasFieldMatch = true;
-      }
-    };
-
-    // Caso típico: errors: [{ code, message }, ...]
-    if (Array.isArray(backendError?.errors) && backendError.errors.length > 0) {
-      backendError.errors.forEach((err) => {
-        apply(err.code, err.message);
-      });
-    } else if (backendError?.code) {
-      // Caso sin array, solo code y detail
-      apply(backendError.code, backendError.detail || backendError.message);
-    }
-
-    return hasFieldMatch;
-  };
-
   const onValid = async (formData) => {
 
     setErrorBackendMessage('');
@@ -82,34 +56,38 @@ function CreateProductForm() {
 
     try {
       await createProduct(formData);
-
       navigate('/admin/products');
-    } catch (error) {
-      const backendError = error?.backendError || error; // por si tu wrapper ya setea backendError
+    } catch (err) {
+      const result = handleApiError(err, {
+        frontendMessages: frontendErrorMessage,
+        showAlert: false,
+      });
 
-      if (backendError) {
-        const matched = setFieldErrorsFromBackend(backendError);
+      // Intentamos mapear errores de campo
+      const matched = result.full?.errors?.some((error) => {
+        const field = fieldByCode[error.code];
+        const message = frontendErrorMessage[error.code] || error.message;
 
-        // Si no se pudo mapear a campos, mostramos un mensaje general traducible
-        if (!matched) {
-          const translated =
-            (backendError.code && frontendErrorMessage[backendError.code]) || null;
+        if (field && message) {
+          setError(field, { type: 'backend', message });
 
-          setErrorBackendMessage(
-            backendError.frontendErrorMessage ||
-              translated ||
-              backendError.backendMessage ||
-              backendError.detail ||
-              backendError.message ||
-              'Contactar a Soporte',
-          );
+          return true;
         }
 
-        return;
-      }
+        return false;
+      });
 
-      setErrorBackendMessage('Contactar a Soporte');
+      if (!matched) {
+        // Si no se pudo mapear ningún error a campos, ahora sí mostramos mensaje general
+        setErrorBackendMessage(result.message);
+
+        if (result.status !== 400) {
+          // solo en errores más serios (500, 404, etc.)
+          alert(result.message);
+        }
+      }
     }
+
   };
 
   return (
@@ -120,7 +98,6 @@ function CreateProductForm() {
           flex-col
           gap-20
           p-8
-
           sm:gap-4
         '
         onSubmit={handleSubmit(onValid)}
